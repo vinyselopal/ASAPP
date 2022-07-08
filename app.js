@@ -11,13 +11,40 @@ function buildContainer (data) {
   const listItem = document.createElement('li')
   selectContainer.appendChild(listItem)
 
-  const text = document.createTextNode(data)
+  const p = document.createElement('p')
+  const savedTextarea = p.appendChild(document.createElement('textarea'))
+  savedTextarea.value = data
+  savedTextarea.spellcheck = false
+  savedTextarea.className = 'savedTextarea'
+  p.classList.add('savedTask')
+
+  const deleteButton = document.createElement('input')
+
   const checkbox = document.createElement('input')
 
   checkbox.type = 'button'
-  listItem.appendChild(text)
+  checkbox.value = 'strike'
+  checkbox.classList.add('strike')
+
+  deleteButton.type = 'button'
+  deleteButton.value = 'delete'
+  deleteButton.classList.add('delete')
+
+  listItem.appendChild(p)
   listItem.appendChild(checkbox)
-  checkbox.addEventListener('click', (e) => {
+  listItem.appendChild(deleteButton)
+
+  checkbox.addEventListener('click', () => {
+    if (checkbox.value === 'strike') {
+      savedTextarea.classList.add('taskCompletion')
+      checkbox.value = 'unstrike'
+    } else {
+      savedTextarea.classList.remove('taskCompletion')
+      checkbox.value = 'strike'
+    }
+  })
+
+  deleteButton.addEventListener('click', () => {
     listItem.remove()
   })
 
