@@ -1,0 +1,24 @@
+body {
+    background-color: white;
+    margin: 0;
+    padding: 0;
+}
+#addTask {
+    padding: 400px auto;
+    margin: auto;
+    margin-top: 20px;
+    width: 300px;
+    display: flex;
+    align-items: center;
+    gap: 3%
+
+}
+/* #addTask input {
+    display: inline;
+} */
+#task {
+   flex: 12
+}
+#add {
+    flex: 1
+}
