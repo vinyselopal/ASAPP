@@ -11,12 +11,12 @@ if (!window.localStorage.getItem('todoItems')) {
   const getTodoItems = JSON.parse(window.localStorage.getItem('todoItems'))
   getTodoItems.forEach(a => {
     const listItem = document.querySelector('ul').lastChild
-    buildElements(a.content, a.id)
+    buildElements(a.content, a.id, a.done)
   })
 }
 
 //buildElements called inside buildContainer
-function buildElements (data1, id) {
+function buildElements (data1, id, done) {
   const selectContainer = document.body.querySelector('ul')
 
   const listItem = document.createElement('li')
@@ -35,8 +35,11 @@ function buildElements (data1, id) {
 
   const checkbox = document.createElement('input')
 
-  checkbox.type = 'button'
-  checkbox.value = 'strike'
+  checkbox.type = 'checkbox'
+  if (done) {
+    checkbox.checked = done
+    savedTextarea.classList.add('taskCompletion')
+  }
   checkbox.classList.add('strike')
 
   deleteButton.type = 'button'
@@ -49,21 +52,28 @@ function buildElements (data1, id) {
 
   listItem.dataset.id = id
 
+  const todoItemsParsed = JSON.parse(window.localStorage.getItem('todoItems'))
 
     //checkbox event listener
-    checkbox.addEventListener('click', () => {
-      if (checkbox.value === 'strike') {
+    checkbox.addEventListener('change', () => {
+      if (checkbox.checked === true) {
         savedTextarea.classList.add('taskCompletion')
-        checkbox.value = 'unstrike'
       } else {
         savedTextarea.classList.remove('taskCompletion')
-        checkbox.value = 'strike'
       }
+      console.log(checkbox.checked)
+      const filtered2 = todoItemsParsed.map(a => {
+        if (a.id === listItem.dataset.id) {
+          a.done = checkbox.checked
+        }
+        return a
+      })
+      console.log(filtered2)
+      localStorage.setItem('todoItems', JSON.stringify(filtered2))
     })
   
     //delete-button event listener
     deleteButton.addEventListener('click', () => {
-      const todoItemsParsed = JSON.parse(window.localStorage.getItem('todoItems'))
       const filtered = todoItemsParsed.filter(a => a.id !== listItem.dataset.id)
       window.localStorage.setItem('todoItems', JSON.stringify(filtered))
       listItem.remove()
@@ -78,7 +88,7 @@ function buildContainer () {
   let uniqueId = Number.parseInt(localStorage.getItem('counter')) 
   if (uniqueId){
     buildElements(data, uniqueId)
-    localStorage.setItem('counter', (uniqueId++).toString(10))
+    localStorage.setItem('counter', (uniqueId + 1).toString(10))
   } else {
     localStorage.setItem('counter', 1)
     buildElements(data, 0)
@@ -89,7 +99,8 @@ function buildContainer () {
   const arr = JSON.parse(localStorage.getItem('todoItems'))
   const obj = {
     id: listItem2.dataset.id,
-    content: data
+    content: data,
+    done: false
   }
   console.log(obj)
   arr.push(obj)
