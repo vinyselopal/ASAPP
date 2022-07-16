@@ -1,27 +1,120 @@
 const task = document.querySelector('#task')
-//let data = task.value
+const listContainer = document.body.querySelector('ul')
+const addTask = document.querySelector('#addTask')
 
-// on first run, creating list elements stored in local storage
-if (!localStorage.getItem('todoItems')) {
-  const arrTemp = []
-  const serial = JSON.stringify(arrTemp)
-  localStorage.setItem('todoItems', serial)
-} else {
-  const getTodoItems = JSON.parse(localStorage.getItem('todoItems'))
-  getTodoItems.forEach(a => {
-    const listItem = document.querySelector('ul').lastChild
-    buildElements(a.content, a.id, a.done)
-  })
+function createTodoComponent () {
+  const element = document.createElement('li')
+  listContainer.appendChild(element)
+  return element
 }
 
-//buildElements called inside buildContainer
-function buildElements (data1, id, done) {
-  const selectContainer = document.body.querySelector('ul')
+function createHiddenTodoComponent (data1, id, done, selected, notesPassed, datePassed, listItem) {
+  // creating invisible part of the listItem
+  const invisible = document.createElement('div')
+  listItem.appendChild(invisible)
+  invisible.classList.add('invisible')
+  invisible.style.display = 'none'
 
-  const listItem = document.createElement('li')
-  
-  selectContainer.appendChild(listItem)
+  // creating and appending child elements to invisible
 
+  // create and append left and right panes of invisible
+  const left = document.createElement('div')
+  left.classList.add('left')
+  const right = document.createElement('div')
+  right.classList.add('right')
+  invisible.appendChild(left)
+  invisible.appendChild(right)
+
+  // create and append notes to left
+  const notes = document.createElement('textarea')
+  left.appendChild(notes)
+  if (notesPassed) {
+    notes.value = notesPassed
+  }
+  notes.classList.add('notes')
+
+  // addeventlistener to notes
+  notes.addEventListener('change', (e) => {
+    const obj = JSON.parse(localStorage.getItem('todoItems'))
+    obj.notes = e.target.value
+    saveToLocalStorage('todoItems', obj)
+  })
+
+  // create and append date, select, and delete button to right
+  const date = document.createElement('input')
+  date.setAttribute('type', 'date')
+  right.appendChild(date)
+  if (datePassed) {
+    date.value = datePassed
+  }
+  date.classList.add('date')
+
+  // addeventlistener to date
+  date.addEventListener('change', (e) => {
+    const obj = getFromLocalStorage('todoItems')
+    obj.date = e.target.value
+    localStorage.setItem('todoItems', JSON.stringify(obj))
+  })
+
+  const priority = document.createElement('select')
+  right.appendChild(priority)
+  priority.classList.add('priority')
+  if (selected) {
+    priority.selectedIndex = selected
+  }
+
+  const low = document.createElement('option')
+  priority.appendChild(low)
+  low.value = 'low'
+  low.textContent = 'low'
+
+  const medium = document.createElement('option')
+  priority.appendChild(medium)
+  medium.value = 'medium'
+  low.textContent = 'medium'
+
+  const high = document.createElement('option')
+  priority.appendChild(high)
+  high.value = 'high'
+  low.textContent = 'high'
+
+  function onSelection (event) {
+    if (event.target.selectedIndex) {
+      const filtered3 = getFromLocalStorage('todoItems').map(a => {
+        if (a.id === listItem.dataset.id) {
+          a.selected = event.target.selectedIndex
+        }
+        return a
+      })
+      saveToLocalStorage('todoItems', filtered3)
+    }
+  }
+
+  priority.addEventListener('change', onSelection)
+
+  const deleteButton = document.createElement('input')
+  deleteButton.type = 'button'
+  deleteButton.value = 'delete'
+  deleteButton.classList.add('delete')
+
+  right.appendChild(deleteButton) // delete button appended
+
+  deleteButton.addEventListener('click', () => {
+    const filtered = getFromLocalStorage('todoItems').filter(a => a.id !== listItem.dataset.id)
+    saveToLocalStorage('todoItems', filtered)
+    listItem.remove()
+  })
+  return invisible
+}
+
+function createVisibleTodoComponent (data1, id, done, selected, notesPassed, datePassed, listItem, invisible) {
+  const visible = document.createElement('div')
+  listItem.insertBefore(visible, invisible)
+  visible.classList.add('visible')
+
+  // creating and appending child elements to visible
+
+  // creating p element and textbox inside
   const p = document.createElement('p')
   const savedTextarea = p.appendChild(document.createElement('input'))
 
@@ -30,94 +123,138 @@ function buildElements (data1, id, done) {
   savedTextarea.spellcheck = false
   p.classList.add('savedTask')
 
-  const deleteButton = document.createElement('input')
-
+  // checkbox created
   const checkbox = document.createElement('input')
-
-
+  // set checkbox properties
   checkbox.type = 'checkbox'
+  checkbox.classList.add('strike')
   if (done) {
     checkbox.checked = done
     savedTextarea.classList.add('taskCompletion')
   }
-  checkbox.classList.add('strike')
 
-  deleteButton.type = 'button'
-  deleteButton.value = 'delete'
-  deleteButton.classList.add('delete')
+  // collapsible button
 
-  listItem.appendChild(p)
-  listItem.appendChild(checkbox)
-  listItem.appendChild(deleteButton)
+  const collapse = document.createElement('input')
+  collapse.type = 'button'
+  collapse.classList.add('collapse')
+  collapse.value = 'v'
 
-  listItem.dataset.id = id
+  visible.appendChild(p)
+  visible.appendChild(checkbox)
+  visible.appendChild(collapse)
+  visible.dataset.id = id
 
-  
-    //checkbox event listener
-    checkbox.addEventListener('change', () => {
-      if (checkbox.checked === true) {
-        savedTextarea.classList.add('taskCompletion')
-      } else {
-        savedTextarea.classList.remove('taskCompletion')
+  // checkbox event listener
+  checkbox.addEventListener('change', () => {
+    if (checkbox.checked === true) {
+      savedTextarea.classList.add('taskCompletion')
+    } else {
+      savedTextarea.classList.remove('taskCompletion')
+    }
+
+    console.log(checkbox.checked)
+    const filtered2 = getFromLocalStorage('todoItems').map(a => {
+      if (a.id === listItem.dataset.id) {
+        a.done = checkbox.checked
       }
-      console.log(checkbox.checked)
-      let filtered2 = JSON.parse(localStorage.getItem('todoItems')).map(a => {
-        if (a.id === listItem.dataset.id) {
-          a.done = checkbox.checked
+      return a
+    })
+    console.log(filtered2)
+    saveToLocalStorage('todoItems', filtered2)
+  })
+
+  // collapse button event listener
+  collapse.addEventListener('click', (e) => {
+    const parent = collapse.parentElement.parentElement
+    const toCollapse = parent.querySelector('.invisible')
+    if (toCollapse.style.display === 'flex') {
+      toCollapse.style.display = 'none'
+      collapse.value = 'v'
+    } else {
+      const openDropDown = document.getElementsByClassName('invisible')
+      for (let i = 0; i < openDropDown.length; i++) {
+        if (openDropDown[i].style.display === 'flex') {
+          openDropDown[i].style.display = 'none'
         }
-        return a
-      })
-      console.log(filtered2)
-      localStorage.setItem('todoItems', JSON.stringify(filtered2))
-    })
-  
-    //delete-button event listener
-    deleteButton.addEventListener('click', () => {
-      const filtered = JSON.parse(localStorage.getItem('todoItems')).filter(a => a.id !== listItem.dataset.id)
-      localStorage.setItem('todoItems', JSON.stringify(filtered))
-      listItem.remove()
-    })
+      }
+      toCollapse.style.display = 'flex'
+      collapse.value = '^'
+    }
+  })
+}
+// buildElement called inside buildContainer
+function buildElement (data1, id, done, selected, notesPassed, datePassed) {
+  const listItem = createTodoComponent()
+  const invisible = createHiddenTodoComponent(data1, id, done, selected, notesPassed, datePassed, listItem)
+  createVisibleTodoComponent(data1, id, done, selected, notesPassed, datePassed, listItem, invisible)
 }
 
-//buildContainer called from buttonClick as callback for event listener on add button
+// buildContainer called from buttonClick as callback for event listener on add button
 function buildContainer () {
-  
-  //condition for what to pass as id to build container
-  //and also to increment local storage counter 
-  let uniqueId = Number.parseInt(localStorage.getItem('counter')) 
-  if (uniqueId){
-    buildElements(task.value, uniqueId)
-    localStorage.setItem('counter', (uniqueId + 1).toString(10))
+  // condition for what to pass as id to build container
+  // and also to increment local storage counter
+  const uniqueId = getFromLocalStorage('counter')
+  if (uniqueId) {
+    buildElement(task.value, uniqueId)
+    saveToLocalStorage('counter', (uniqueId + 1).toString(10))
   } else {
-    localStorage.setItem('counter', 1)
-    buildElements(task.value, 0)
+    buildElement(task.value, 0)
+    saveToLocalStorage('counter', 1)
   }
-  const listItem2 = document.querySelector('ul').lastChild
-
-  //store newly created listItem in local storage
-  const arr = JSON.parse(localStorage.getItem('todoItems'))
-  const obj = {
-    id: listItem2.dataset.id,
-    content: task.value,
-    done: false
-  }
-  console.log(obj)
-  arr.push(obj)
-  localStorage.setItem('todoItems', JSON.stringify(arr))
-
+  const listItem2 = listContainer.lastChild
+  pushTodoToLocalStorage(listItem2)
 }
 
-// callback function for add, calls buildContainer 
+// push todo to local storage
+function pushTodoToLocalStorage (todo) {
+  const arr = getFromLocalStorage('todoItems')
+  const obj = {
+    id: todo.dataset.id,
+    content: task.value,
+    done: false,
+    selected: null,
+    notes: null,
+    date: null // careful
+  }
+  arr.push(obj)
+  saveToLocalStorage('todoItems', arr)
+}
+
+// save to Local Storage
+function saveToLocalStorage (localStorageKey, value) {
+  localStorage.setItem(localStorageKey, JSON.stringify(value))
+}
+
+// retrive from Local Storage
+function getFromLocalStorage (localStorageKey) {
+  return JSON.parse(localStorage.getItem(localStorageKey))
+}
+
+// callback function for addTask bar, calls buildContainer
 function buttonClick (e) {
-  if (e.target.value && e.keyCode == 13) {
+  if (e.target.value && e.keyCode === 13) {
     buildContainer()
     e.target.value = ''
   }
 }
 
-//add event listeners to DOM elements, add and task, on initiation
-// task.addEventListener('input', () => {
-//   data = task.value
-// })
-const addTask = document.querySelector('#addTask')
-addTask.addEventListener('keypress', buttonClick)
+// on first run, rendering list elements stored in local storage
+function renderTodo () {
+  if (!getFromLocalStorage('todoItems')) {
+    const arrTemp = []
+    saveToLocalStorage('todoItems', arrTemp)
+  } else {
+    const getTodoItems = getFromLocalStorage('todoItems')
+    getTodoItems.forEach(a => {
+      buildElement(a.content, a.id, a.done, a.selected, a.notes, a.date)
+    })
+  }
+}
+
+function makeTodo () {
+  addTask.addEventListener('keypress', buttonClick)
+  renderTodo()
+}
+
+makeTodo()

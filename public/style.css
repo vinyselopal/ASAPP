@@ -15,7 +15,7 @@ body {
     margin-top: 20px;
     margin-bottom: 20px;
     padding: 5px;
-    width: 56%;
+    width: 53%;
     display: flex;
     gap: 3%;
     border-radius: 3px
@@ -27,7 +27,7 @@ body {
 }
 ul {
     /* background-color: yellow; */
-    width: 56%;
+    width: 53%;
     margin: auto;
     padding: 0;
     display: flexbox;
@@ -35,17 +35,22 @@ ul {
     gap: 10%;
     
 }
-
-ul li {
+li {
     list-style: none;
+    background-color: white;
     margin-bottom: 17px;
+    gap: 5px;
+    border-radius: 3px
+
+
+}
+ul li .visible{
+    
     background-color: white;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 5px;
     padding: 10px;
-    border-radius: 3px
 }
 
 .savedTextarea {
@@ -78,4 +83,22 @@ ul li {
 .delete {
     display: inline-block
 
+}
+
+.invisible {
+    background-color: lightblue;
+    min-height: 120px;
+}
+
+.notes {
+    height: 80%;
+    margin: 3px;
+    padding: 6px
+}
+
+.right {
+    display: flex;
+    flex-direction: column;
+    margin: auto;
+    gap: 5px
 }
