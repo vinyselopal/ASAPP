@@ -8,77 +8,97 @@ function createTodoComponent () {
   return element
 }
 
-function createHiddenTodoComponent (data1, id, done, selected, notesPassed, datePassed, listItem) {
-  // creating invisible part of the listItem
-  const invisible = document.createElement('div')
-  listItem.appendChild(invisible)
-  invisible.classList.add('invisible')
-  invisible.style.display = 'none'
+function createTodoPriorityElm (todoPriorities, updateTodoItemPriority, selected) {
+  const TodoPriorityElm = document.createElement('select')
+  TodoPriorityElm.classList.add('priority')
 
-  // creating and appending child elements to invisible
+  todoPriorities.map((priority) => {
+    const elm = document.createElement('option')
+    elm.value = priority
+    elm.textContent = priority
 
-  // create and append left and right panes of invisible
-  const left = document.createElement('div')
-  left.classList.add('left')
-  const right = document.createElement('div')
-  right.classList.add('right')
-  invisible.appendChild(left)
-  invisible.appendChild(right)
-
-  // create and append notes to left
-  const notes = document.createElement('textarea')
-  left.appendChild(notes)
-  if (notesPassed) {
-    notes.value = notesPassed
-  }
-  notes.classList.add('notes')
-
-  // addeventlistener to notes
-  notes.addEventListener('change', (e) => {
-    const obj = JSON.parse(localStorage.getItem('todoItems'))
-    obj.notes = e.target.value
-    saveToLocalStorage('todoItems', obj)
+    return elm
+  }).forEach((elm) => {
+    TodoPriorityElm.appendChild(elm)
   })
 
-  // create and append date, select, and delete button to right
+  TodoPriorityElm.addEventListener('change', updateTodoItemPriority)
+
+  if (selected) {
+    TodoPriorityElm.selectedIndex = selected
+  }
+
+  return TodoPriorityElm
+}
+
+function createTodoNotesElm (notesPassed, onNotesChange) {
+  const notesElm = document.createElement('textarea')
+  if (notesPassed) {
+    notesElm.value = notesPassed
+  }
+  notesElm.classList.add('notes')
+  // addeventlistener to notes
+  notesElm.addEventListener('change', onNotesChange)
+
+  return notesElm
+}
+
+function createTodoDateElm (datePassed, onChange) {
   const date = document.createElement('input')
   date.setAttribute('type', 'date')
-  right.appendChild(date)
   if (datePassed) {
     date.value = datePassed
   }
   date.classList.add('date')
-
   // addeventlistener to date
-  date.addEventListener('change', (e) => {
+  date.addEventListener('change', onChange)
+
+  return date
+}
+
+function createTodoItemDeleteElm (onClick) {
+  const deleteButton = document.createElement('input')
+  deleteButton.type = 'button'
+  deleteButton.value = 'delete'
+  deleteButton.classList.add('delete')
+  deleteButton.addEventListener('click', onClick)
+
+  return deleteButton
+}
+
+function createHiddenTodoComponent (selected, notesPassed, datePassed, listItem) {
+  // creating invisible part of the listItem
+  const invisible = document.createElement('div')
+  invisible.classList.add('invisible')
+  invisible.style.display = 'none'
+  listItem.appendChild(invisible)
+
+  // create and append left and right panes of invisible
+  const left = document.createElement('div')
+  left.classList.add('left')
+  invisible.appendChild(left)
+
+  const right = document.createElement('div')
+  right.classList.add('right')
+  invisible.appendChild(right)
+
+  // create and append notes to left
+  const notes = createTodoNotesElm(notesPassed, (e) => {
+    const obj = JSON.parse(localStorage.getItem('todoItems'))
+    obj.notes = e.target.value
+    saveToLocalStorage('todoItems', obj)
+  })
+  left.appendChild(notes)
+
+  // create and append date, select, and delete button to right
+  const date = createTodoDateElm(datePassed, (e) => {
     const obj = getFromLocalStorage('todoItems')
     obj.date = e.target.value
     localStorage.setItem('todoItems', JSON.stringify(obj))
   })
+  right.appendChild(date)
 
-  const priority = document.createElement('select')
-  right.appendChild(priority)
-  priority.classList.add('priority')
-  if (selected) {
-    priority.selectedIndex = selected
-  }
-
-  const low = document.createElement('option')
-  priority.appendChild(low)
-  low.value = 'low'
-  low.textContent = 'low'
-
-  const medium = document.createElement('option')
-  priority.appendChild(medium)
-  medium.value = 'medium'
-  low.textContent = 'medium'
-
-  const high = document.createElement('option')
-  priority.appendChild(high)
-  high.value = 'high'
-  low.textContent = 'high'
-
-  function onSelection (event) {
+  function updateTodoItemPriority (event) {
     if (event.target.selectedIndex) {
       const filtered3 = getFromLocalStorage('todoItems').map(a => {
         if (a.id === listItem.dataset.id) {
@@ -89,25 +109,20 @@ function createHiddenTodoComponent (data1, id, done, selected, notesPassed, date
       saveToLocalStorage('todoItems', filtered3)
     }
   }
+  const TodoPriorityElm = createTodoPriorityElm(['low', 'medium', 'high'], updateTodoItemPriority, selected)
+  right.appendChild(TodoPriorityElm)
 
-  priority.addEventListener('change', onSelection)
-
-  const deleteButton = document.createElement('input')
-  deleteButton.type = 'button'
-  deleteButton.value = 'delete'
-  deleteButton.classList.add('delete')
-
-  right.appendChild(deleteButton) // delete button appended
-
-  deleteButton.addEventListener('click', () => {
+  const deleteButton = createTodoItemDeleteElm(() => {
     const filtered = getFromLocalStorage('todoItems').filter(a => a.id !== listItem.dataset.id)
     saveToLocalStorage('todoItems', filtered)
     listItem.remove()
   })
+  right.appendChild(deleteButton) // delete button appended
+
   return invisible
 }
 
-function createVisibleTodoComponent (data1, id, done, selected, notesPassed, datePassed, listItem, invisible) {
+function createVisibleTodoComponent (data1, done, listItem, invisible) {
   const visible = document.createElement('div')
   listItem.insertBefore(visible, invisible)
   visible.classList.add('visible')
@@ -143,7 +158,6 @@ function createVisibleTodoComponent (data1, id, done, selected, notesPassed, dat
   visible.appendChild(p)
   visible.appendChild(checkbox)
   visible.appendChild(collapse)
-  visible.dataset.id = id
 
   // checkbox event listener
   checkbox.addEventListener('change', () => {
@@ -157,6 +171,7 @@ function createVisibleTodoComponent (data1, id, done, selected, notesPassed, dat
     const filtered2 = getFromLocalStorage('todoItems').map(a => {
       if (a.id === listItem.dataset.id) {
         a.done = checkbox.checked
+        console.log('heya')
       }
       return a
     })
@@ -186,8 +201,9 @@ function createVisibleTodoComponent (data1, id, done, selected, notesPassed, dat
 // buildElement called inside buildContainer
 function buildElement (data1, id, done, selected, notesPassed, datePassed) {
   const listItem = createTodoComponent()
-  const invisible = createHiddenTodoComponent(data1, id, done, selected, notesPassed, datePassed, listItem)
-  createVisibleTodoComponent(data1, id, done, selected, notesPassed, datePassed, listItem, invisible)
+  listItem.dataset.id = id
+  const invisible = createHiddenTodoComponent(selected, notesPassed, datePassed, listItem)
+  createVisibleTodoComponent(data1, done, listItem, invisible)
 }
 
 // buildContainer called from buttonClick as callback for event listener on add button
@@ -197,7 +213,7 @@ function buildContainer () {
   const uniqueId = getFromLocalStorage('counter')
   if (uniqueId) {
     buildElement(task.value, uniqueId)
-    saveToLocalStorage('counter', (uniqueId + 1).toString(10))
+    saveToLocalStorage('counter', uniqueId + 1)
   } else {
     buildElement(task.value, 0)
     saveToLocalStorage('counter', 1)
@@ -216,6 +232,9 @@ function pushTodoToLocalStorage (todo) {
     selected: null,
     notes: null,
     date: null // careful
+  }
+  if (!arr) {
+    saveToLocalStorage('todoItems', [])
   }
   arr.push(obj)
   saveToLocalStorage('todoItems', arr)
@@ -258,3 +277,5 @@ function makeTodo () {
 }
 
 makeTodo()
+
+// fix checkbox and delete error
