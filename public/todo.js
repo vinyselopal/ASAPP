@@ -38,7 +38,7 @@ function createTodoNotesElm (notesPassed, onNotesChange) {
   }
   notesElm.classList.add('notes')
   // addeventlistener to notes
-  notesElm.addEventListener('change', onNotesChange)
+  notesElm.addEventListener('input', onNotesChange)
 
   return notesElm
 }
@@ -84,22 +84,30 @@ function createHiddenTodoComponent (selected, notesPassed, datePassed, listItem)
 
   // create and append notes to left
   const notes = createTodoNotesElm(notesPassed, (e) => {
-    const obj = JSON.parse(localStorage.getItem('todoItems'))
-    obj.notes = e.target.value
-    saveToLocalStorage('todoItems', obj)
+    const filtered4 = getFromLocalStorage('todoItems').map(a => {
+      if (a.id === listItem.dataset.id) {
+        a.notes = e.target.value
+      }
+      return a
+    })
+    saveToLocalStorage('todoItems', filtered4)
   })
   left.appendChild(notes)
 
   // create and append date, select, and delete button to right
   const date = createTodoDateElm(datePassed, (e) => {
-    const obj = getFromLocalStorage('todoItems')
-    obj.date = e.target.value
-    localStorage.setItem('todoItems', JSON.stringify(obj))
+    const filtered5 = getFromLocalStorage('todoItems').map(a => {
+      if (a.id === listItem.dataset.id) {
+        a.date = e.target.value
+      }
+      return a
+    })
+    saveToLocalStorage('todoItems', filtered5)
   })
   right.appendChild(date)
 
   function updateTodoItemPriority (event) {
-    if (event.target.selectedIndex) {
+    if (!isNaN(event.target.selectedIndex)) {
       const filtered3 = getFromLocalStorage('todoItems').map(a => {
         if (a.id === listItem.dataset.id) {
           a.selected = event.target.selectedIndex
