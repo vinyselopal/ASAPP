@@ -1,73 +1,90 @@
+@import 'variables.css';
+* {
+    color: var(--color-font);
+    font-size: 25px;
+    font-weight:300
+}
 body {
-    background-color: rgb(248, 228, 173);
+    background-color: var(--color-bg);
     margin: 0;
     padding: 0;
     box-sizing: border-box;
     font-size: 15px;
 }
 
+h1 {
+    font-family: 'Open Sans', sans-serif;
+    font-size: 60px;
+    color: white;
+
+}
 .title {
     text-align: center;
 }
 #addTask {
-    background-color: white;
+    border: 1px solid var(--color-border);
     margin: auto;
     margin-top: 20px;
-    margin-bottom: 20px;
-    padding: 5px;
-    width: 53%;
+    margin-bottom: 60px;
+    padding: 20px;
+    width: 40rem;
     display: flex;
     gap: 3%;
-    border-radius: 3px
+    border-radius: 45px;
+    height: 30px
 }
 
 #task {
-   flex: 12;
+    width: 100%;
+   background-color: var(--color-bg);
    border: none;
+   padding-left: 10px3
+
 }
 ul {
     /* background-color: yellow; */
-    width: 53%;
+    width: 40rem;
     margin: auto;
     padding: 0;
     display: flexbox;
     flex-direction: column;
     gap: 10%;
+    border-color: var(--color-border)
     
 }
 li {
     list-style: none;
-    background-color: white;
     margin-bottom: 17px;
     gap: 5px;
-    border-radius: 3px
-
 
 }
 ul li .visible{
-    
-    background-color: white;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px;
+    border-radius: 30px;
+    border: 1px solid var(--color-border);
+    padding: 20px;
+    height: 18px
 }
 
 .savedTextarea {
+    width: 100%;
+    background-color: var(--color-bg);
     border: none;
-    width: 100%
 }
 .taskCompletion {
     text-decoration: line-through;
-    font: grey
+    color: var(--color-border)
 
 }
 .savedTask {
     margin: 0;
-    padding: 0;
+    padding: 10px;
     overflow: hidden;
     display: inline-block;
-    width: 80%
+    width: 80%;
+    background-color: var(--color-bg);
 }
 
 .manageTodo {
@@ -76,29 +93,119 @@ ul li .visible{
 }
 
 .strike {
-    display: inline-block
+    display: inline-block;
+    height: 39.5px;
+    width: 39.5px;
+    margin-right: 5px
 
 }
 
 .delete {
-    display: inline-block
+    background-color: var(--color-delete);
 
 }
 
 .invisible {
-    background-color: lightblue;
-    min-height: 120px;
+    height: 150px;
+    border: 1px solid var(--color-border);
+    border-radius: 30px;
+    padding: 20px;
+    justify-content: stretch;
+    gap: 20px
 }
 
 .notes {
-    height: 80%;
-    margin: 3px;
-    padding: 6px
+    height: 140px;
+    width: 100%;
+    padding: 6px;
+    margin: 0;
+    background-color: var(--color-border);
+    font-size: 20px;
 }
 
 .right {
     display: flex;
     flex-direction: column;
-    margin: auto;
-    gap: 5px
+    margin: 0;
+    gap: 5px;
+    padding: auto;
+    flex: 1
 }
+
+.left {
+    margin: 0;
+    display: flex;
+    justify-content: stretch;
+    flex: 2
+}
+
+/* .doneTodoFooter {
+    background-color: white;
+    display: inline
+}
+
+.allTodoFooter {
+    background-color: black;
+    display: inline
+} */
+
+.footerDiv {
+    position: fixed;
+    display: flex;
+    bottom: 0.5rem;
+    left: 700px;
+    padding: 15px;
+    justify-content: space-between;
+    margin: auto;
+    gap: 4%;
+    width: 40rem;
+    background-color: var(--color-footer);
+    border-radius: 35px
+}
+
+.clearAll {
+    font: 1em sans-serif;
+    background-color: var(--color-border);
+    border-radius: 30px;
+    border: none;
+    width: 10rem;
+    padding: 5px;
+    margin-right: 20px;
+    color: white
+}
+.clearDone {
+    font: 1em sans-serif;
+    background-color: var(--color-border);
+    border-radius: 30px;
+    border: none;
+    width: 10rem;
+    padding: 5px;
+    margin-left: 20px;
+    color: white
+
+}
+
+.footer {
+    display: flex;
+    align-items: center;
+}
+
+.collapse {
+    height: 100%;
+    margin-right: 10px;
+    height: 36px;
+    width: 36px;
+    background-color: var(--color-border);
+    border-radius: 3px;
+    border: none;
+    color: white
+}
+
+.date {
+    background-color: var(--color-border);
+}
+
+.priority {
+    background-color: var(--color-border);
+}
+

@@ -39,7 +39,7 @@ function createTodoNotesElm (notesPassed, onNotesChange) {
   notesElm.classList.add('notes')
   // addeventlistener to notes
   notesElm.addEventListener('input', onNotesChange)
-
+  notesElm.spellCheck = false
   return notesElm
 }
 
@@ -175,16 +175,14 @@ function createVisibleTodoComponent (data1, done, listItem, invisible) {
       savedTextarea.classList.remove('taskCompletion')
     }
 
-    console.log(checkbox.checked)
     const filtered2 = getFromLocalStorage('todoItems').map(a => {
       if (a.id === listItem.dataset.id) {
         a.done = checkbox.checked
-        console.log('heya')
       }
       return a
     })
-    console.log(filtered2)
     saveToLocalStorage('todoItems', filtered2)
+    toggleDoneTodoFooter()
   })
 
   // collapse button event listener
@@ -268,6 +266,9 @@ function buttonClick (e) {
 
 // on first run, rendering list elements stored in local storage
 function renderTodo () {
+  makeFooter()
+  toggleDoneTodoFooter()
+  addTask.addEventListener('keypress', buttonClick)
   if (!getFromLocalStorage('todoItems')) {
     const arrTemp = []
     saveToLocalStorage('todoItems', arrTemp)
@@ -279,11 +280,66 @@ function renderTodo () {
   }
 }
 
-function makeTodo () {
-  addTask.addEventListener('keypress', buttonClick)
+function countDone () {
+  const arr = getFromLocalStorage('todoItems')
+  if (arr.filter(a => a.done).length) {
+    return 1
+  } else return 0
+}
+
+function toggleDoneTodoFooter () {
+  const getButton = document.querySelector('.clearDone')
+  if (countDone()) getButton.style.visibility = 'visible'
+  else getButton.style.visibility = 'hidden'
+}
+
+function createClearAll (footer) {
+  const clearAll = document.createElement('input')
+  clearAll.type = 'button'
+  clearAll.value = 'Clear All'
+  clearAll.addEventListener('click', clearAllEventListener)
+  footer.appendChild(clearAll)
+  clearAll.classList.add('clearAll')
+}
+
+function clearAllEventListener () {
+  saveToLocalStorage('todoItems', [])
+  while (document.querySelector('li')) {
+    document.querySelector('li').remove()
+  }
+}
+function createClearDone (footer) {
+  const clearDone = document.createElement('input')
+  clearDone.type = 'button'
+  clearDone.value = 'Clear Done'
+  clearDone.addEventListener('click', clearDoneEventListener)
+  footer.appendChild(clearDone)
+  clearDone.classList.add('clearDone')
+}
+
+function clearDoneEventListener () {
+  const arr1 = getFromLocalStorage('todoItems').filter(a => !a.done)
+  saveToLocalStorage('todoItems', arr1)
+  while (document.querySelector('.taskCompletion')) {
+    document.querySelector('.taskCompletion').parentElement.parentElement.remove()
+  }
+  toggleDoneTodoFooter()
+}
+
+function makeFooter () {
+  const footer = document.createElement('footer')
+  const div = document.createElement('div')
+  footer.appendChild(div)
+  div.classList.add('footerDiv')
+  footer.classList.add('.footer')
+  document.body.appendChild(footer)
+  createClearDone(div)
+  createClearAll(div)
+}
+function main () {
   renderTodo()
 }
 
-makeTodo()
+main()
 
 // fix checkbox and delete error

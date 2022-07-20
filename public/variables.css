@@ -1,0 +1,15 @@
+:root {
+    --color-a: rgb(241, 241, 241);
+    --color-b: rgb(178, 178, 178);
+    --color-c: rgb(94, 94, 94);
+    --color-d: rgb(45, 45, 45);
+    --color-e: rgb(255, 238, 1);
+    --color-f: rgb(255, 128, 0);
+    --color-g: rgb(255, 0, 0);
+    --color-h: rgb(27, 27, 27);
+    --color-border: var(--color-c);
+    --color-bg: var(--color-d);
+    --color-font: var(--color-b);
+    --color-footer: var(--color-h);
+    --color-delete: var(--color-g)
+}
