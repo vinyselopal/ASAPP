@@ -2,10 +2,10 @@
   "name": "todoapp",
   "version": "1.0.0",
   "description": "",
-  "main": "server.js",
+  "main": "source/server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "devStart": "nodemon server.js"
+    "devStart": "nodemon source/server.js"
   },
   "repository": {
     "type": "git",
@@ -19,13 +19,16 @@
   },
   "homepage": "https://github.com/vinyselopal/To-do-app#readme",
   "dependencies": {
-    "express": "^4.18.1"
+    "express": "^4.18.1",
+    "pg": "^8.7.3"
   },
   "devDependencies": {
     "nodemon": "^2.0.19",
     "standard": "^17.0.0"
   },
   "standard": {
-    "env": ["browser"]
+    "env": [
+      "browser"
+    ]
   }
 }

@@ -1,3 +1,5 @@
+const e = require('express')
+
 const task = document.querySelector('#task')
 const listContainer = document.body.querySelector('ul')
 const addTask = document.querySelector('#addTask')
@@ -82,46 +84,53 @@ function createHiddenTodoComponent (selected, notesPassed, datePassed, listItem)
   invisible.appendChild(right)
 
   // create and append notes to left
-  const notes = createTodoNotesElm(notesPassed, (e) => {
-    const filtered4 = getFromLocalStorage('todoItems').map(a => { // UPDATE
-      if (a.id === listItem.dataset.id) {
-        a.notes = e.target.value
-      }
-      return a
-    })
-    saveToLocalStorage('todoItems', filtered4)
-  })
+  const notes = createTodoNotesElm(notesPassed, (e) => { fetch(`localhost:3000/todos/:${listItem.dataset.id}`, { method: 'PUT', body: JSON.stringify({ notes: e.target.value }) }) })
+
+  //     (e) => {
+  //     const filtered4 = getFromLocalStorage('todoItems').map(a => { // UPDATE
+  //       if (a.id === listItem.dataset.id) {
+  //         a.notes = e.target.value
+  //       }
+  //       return a
+  //     })
+  //     saveToLocalStorage('todoItems', filtered4)
+  //   })
   left.appendChild(notes)
 
   // create and append date, select, and delete button to right
-  const date = createTodoDateElm(datePassed, (e) => {
-    const filtered5 = getFromLocalStorage('todoItems').map(a => { // UPDATE
-      if (a.id === listItem.dataset.id) {
-        a.date = e.target.value
-      }
-      return a
-    })
-    saveToLocalStorage('todoItems', filtered5)
-  })
+  const date = createTodoDateElm(datePassed, (e) => { fetch(`localhost:3000/todos/:${listItem.dataset.id}`, { method: 'PUT', body: JSON.stringify({ date: e.target.value }) }) })
+
+  //     (e) => {
+  //     const filtered5 = getFromLocalStorage('todoItems').map(a => { // UPDATE
+  //       if (a.id === listItem.dataset.id) {
+  //         a.date = e.target.value
+  //       }
+  //       return a
+  //     })
+  //     saveToLocalStorage('todoItems', filtered5)
+  //   })
   right.appendChild(date)
 
   function updateTodoItemPriority (event) {
     if (!isNaN(event.target.selectedIndex)) {
-      const filtered3 = getFromLocalStorage('todoItems').map(a => { // UPDATE todoitems SET priority = selectedIndex WHERE id.....
-        if (a.id === listItem.dataset.id) {
-          a.selected = event.target.selectedIndex
-        }
-        return a
-      })
-      saveToLocalStorage('todoItems', filtered3)
+      fetch(`localhost:3000/todos/:${listItem.dataset.id}`, { method: 'PUT', body: JSON.stringify({ priority: event.target.value }) })
+
+    //   const filtered3 = getFromLocalStorage('todoItems').map(a => { // UPDATE todoitems SET priority = selectedIndex WHERE id.....
+    //     if (a.id === listItem.dataset.id) {
+    //       a.selected = event.target.selectedIndex
+    //     }
+    //     return a
+    //   })
+    //   saveToLocalStorage('todoItems', filtered3)
     }
   }
   const TodoPriorityElm = createTodoPriorityElm(['low', 'medium', 'high'], updateTodoItemPriority, selected)
   right.appendChild(TodoPriorityElm)
 
-  const deleteButton = createTodoItemDeleteElm(() => {
-    const filtered = getFromLocalStorage('todoItems').filter(a => a.id !== listItem.dataset.id) // DELETE FROM todoitems WHERE id = listITEM.Dataset.id;
-    saveToLocalStorage('todoItems', filtered)
+  const deleteButton = createTodoItemDeleteElm((event) => {
+    fetch(`localhost:3000/todos/:${listItem.dataset.id}`, { method: 'DELETE' })
+    // const filtered = getFromLocalStorage('todoItems').filter(a => a.id !== listItem.dataset.id) // DELETE FROM todoitems WHERE id = listITEM.Dataset.id;
+    // saveToLocalStorage('todoItems', filtered)
     listItem.remove()
   })
   right.appendChild(deleteButton) // delete button appended
@@ -167,20 +176,21 @@ function createVisibleTodoComponent (data1, done, listItem, invisible) {
   visible.appendChild(collapse)
 
   // checkbox event listener
-  checkbox.addEventListener('change', () => {
+  checkbox.addEventListener('change', (event) => {
     if (checkbox.checked === true) {
       savedTextarea.classList.add('taskCompletion')
     } else {
       savedTextarea.classList.remove('taskCompletion')
     }
+    fetch(`localhost:3000/todos/:${listItem.dataset.id}`, { method: 'PUT', body: JSON.stringify({ done: event.target.checked }) })
 
-    const filtered2 = getFromLocalStorage('todoItems').map(a => { // updating checked column of a row // UPDATE todoitems SET done = x WHERE id = listItem.dataset.id;
-      if (a.id === listItem.dataset.id) {
-        a.done = checkbox.checked
-      }
-      return a
-    })
-    saveToLocalStorage('todoItems', filtered2)
+    // const filtered2 = getFromLocalStorage('todoItems').map(a => { // updating checked column of a row // UPDATE todoitems SET done = x WHERE id = listItem.dataset.id;
+    //   if (a.id === listItem.dataset.id) {
+    //     a.done = checkbox.checked
+    //   }
+    //   return a
+    // })
+    // saveToLocalStorage('todoItems', filtered2)
     toggleDoneTodoFooter()
   })
 
@@ -215,7 +225,7 @@ function buildElement (data1, id, done, selected, notesPassed, datePassed) {
 function buildContainer () {
   // condition for what to pass as id to build container
   // and also to increment local storage counter
-  const uniqueId = getFromLocalStorage('counter') // no unique id needed
+  const uniqueId = getFromLocalStorage('counter') // unique id got from serial primary key after saving todo to database //start from here
   if (uniqueId) {
     buildElement(task.value, uniqueId)
     saveToLocalStorage('counter', uniqueId + 1)
@@ -229,20 +239,32 @@ function buildContainer () {
 
 // push todo to local storage
 function pushTodoToLocalStorage (todo) {
-  const arr = getFromLocalStorage('todoItems') // SELECT * FROM todoitems
-  const obj = {
-    id: todo.dataset.id,
-    content: task.value,
-    done: false,
-    selected: null,
-    notes: null,
-    date: null
-  }
-  if (!arr) {
-    saveToLocalStorage('todoItems', []) // CREATE TABLE IF NOT EXISTS todoitems(id SERIAL PRIMARY KEY, content text, done boolean, selected int, notes text, date date);
-  }
-  arr.push(obj)
-  saveToLocalStorage('todoItems', arr)
+  fetch(`localhost:3000/todos/:${todo.dataset.id}`, {
+    method: 'POST',
+    body: JSON.stringify({
+      id: todo.dataset.id,
+      content: task.value,
+      done: false,
+      selected: null,
+      notes: null,
+      date: null
+    })
+  })
+
+//   const arr = getFromLocalStorage('todoItems') // SELECT * FROM todoitems
+//   const obj = {
+//     id: todo.dataset.id,
+//     content: task.value,
+//     done: false,
+//     selected: null,
+//     notes: null,
+//     date: null
+//   }
+//   if (!arr) {
+//     saveToLocalStorage('todoItems', []) // CREATE TABLE IF NOT EXISTS todoitems(id SERIAL PRIMARY KEY, content text, done boolean, selected int, notes text, date date);
+//   }
+//   arr.push(obj)
+//   saveToLocalStorage('todoItems', arr)
 }
 
 // save to Local Storage
@@ -270,20 +292,23 @@ function renderTodo () {
   addTask.addEventListener('keypress', buttonClick)
   if (!getFromLocalStorage('todoItems')) {
     const arrTemp = []
-    saveToLocalStorage('todoItems', arrTemp) // CREATE TABLE
+    saveToLocalStorage('todoItems', arrTemp)
   } else {
-    const getTodoItems = getFromLocalStorage('todoItems')
-    getTodoItems.forEach(a => {
-      buildElement(a.content, a.id, a.done, a.selected, a.notes, a.date)
-    })
+    const getTodoItems = fetch('localhost:3000/todos', { method: 'GET' }) // Work on res.body u get including whole table in form of json
+    // getFromLocalStorage('todoItems')
+
+    // getTodoItems.forEach(a => {
+    //   buildElement(a.content, a.id, a.done, a.selected, a.notes, a.date)
+    // })
   }
 }
 
 function countDone () {
-  const arr = getFromLocalStorage('todoItems') // SELECT COUNT (*)  FROM todoitems WHERE done = 1;
-  if (arr.filter(a => a.done).length) {
-    return 1
-  } else return 0
+  fetch('localhost:3000/todos/countDone', { method: 'GET' })
+//   const arr = getFromLocalStorage('todoItems') // SELECT COUNT (*)  FROM todoitems WHERE done = 1;
+//   if (arr.filter(a => a.done).length) {
+//     return 1
+//   } else return 0
 }
 
 function toggleDoneTodoFooter () {
@@ -302,10 +327,11 @@ function createClearAll (footer) {
 }
 
 function clearAllEventListener () {
-  saveToLocalStorage('todoItems', []) // DELETE FROM todoitems;
-  while (document.querySelector('li')) {
-    document.querySelector('li').remove()
-  }
+  fetch('localhost:3000/todos', { method: 'DELETE' })
+//   saveToLocalStorage('todoItems', []) // DELETE FROM todoitems;
+//   while (document.querySelector('li')) {
+//     document.querySelector('li').remove()
+//   }
 }
 function createClearDone (footer) {
   const clearDone = document.createElement('input')
@@ -317,11 +343,12 @@ function createClearDone (footer) {
 }
 
 function clearDoneEventListener () {
-  const arr1 = getFromLocalStorage('todoItems').filter(a => !a.done) // DELETE FROM todoitems WHERE done = 1
-  saveToLocalStorage('todoItems', arr1)
-  while (document.querySelector('.taskCompletion')) {
-    document.querySelector('.taskCompletion').parentElement.parentElement.remove()
-  }
+  fetch('localhost:3000/todos/clearDone', { method: 'DELETE' })
+  //   const arr1 = getFromLocalStorage('todoItems').filter(a => !a.done) // DELETE FROM todoitems WHERE done = 1
+  //   saveToLocalStorage('todoItems', arr1)
+  //   while (document.querySelector('.taskCompletion')) {
+  //     document.querySelector('.taskCompletion').parentElement.parentElement.remove()
+  //   }
   toggleDoneTodoFooter()
 }
 
