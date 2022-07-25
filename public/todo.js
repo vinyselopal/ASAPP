@@ -1,61 +1,197 @@
-const task = document.querySelector('#task')
-const listContainer = document.body.querySelector('ul')
-const addTask = document.querySelector('#addTask')
-function createTodoComponent () {
+renderTodo()
+
+// on first run, rendering list elements stored in local storage
+async function renderTodo () {
+  makeFooter()
+  toggleDoneTodoFooter()
+  console.log('hi')
+  const addTodoBar = document.querySelector('#addTodoBar')
+  addTodoBar.addEventListener('keypress', addTaskAction)
+  // if (!getFromLocalStorage('todoItems')) {
+  //   saveToLocalStorage('todoItems', []) // make TABLE
+  // } else {
+  const getTodoItems = await (await fetch('http://localhost:3000/todos', { method: 'GET' })).json()
+  // getFromLocalStorage('todoItems')
+  getTodoItems.forEach(a => {
+    buildElements(a.todocontent, a.id, a.donestatus, a.selectedpriority, a.notes, a.date)
+  })
+  // }
+}
+function makeFooter () {
+  const footer = document.createElement('footer')
+  const div = document.createElement('div')
+  footer.appendChild(div)
+  div.classList.add('footerDiv')
+  footer.classList.add('.footer')
+  document.body.appendChild(footer)
+  makeClearDoneButton(div)
+  makeClearAllButton(div)
+}
+function makeClearDoneButton (footer) {
+  const clearDone = document.createElement('input')
+  clearDone.type = 'button'
+  clearDone.value = 'Clear doneStatus'
+  clearDone.addEventListener('click', clearDoneEventListener)
+  footer.appendChild(clearDone)
+  clearDone.classList.add('clearDone')
+}
+function clearDoneEventListener () {
+  fetch('http://localhost:3000/todos/clearDone', { method: 'DELETE' })
+  // const arr1 = getFromLocalStorage('todoItems').filter(a => !a.doneStatus) // DELETE FROM todoitems WHERE doneStatus = 1
+  // saveToLocalStorage('todoItems', arr1)
+  while (document.querySelector('.taskCompletion')) {
+    document.querySelector('.taskCompletion').parentElement.parentElement.remove()
+  }
+  toggleDoneTodoFooter()
+}
+function makeClearAllButton (footer) {
+  const clearAll = document.createElement('input')
+  clearAll.type = 'button'
+  clearAll.value = 'Clear All'
+  clearAll.addEventListener('click', clearAllEventListener)
+  footer.appendChild(clearAll)
+  clearAll.classList.add('clearAll')
+}
+function clearAllEventListener () {
+  fetch('http://localhost:3000/todos', { method: 'DELETE' })
+
+  // saveToLocalStorage('todoItems', []) // DELETE FROM todoitems;
+  while (document.querySelector('li')) {
+    document.querySelector('li').remove()
+  }
+}
+function toggleDoneTodoFooter () {
+  const clearDone = document.querySelector('.clearDone')
+  if (countDone()) clearDone.style.visibility = 'visible'
+  else clearDone.style.visibility = 'hidden'
+}
+// callback function for addTodoBar bar, calls buildContainer
+function addTaskAction (e) {
+  if (e.target.value && e.keyCode === 13) {
+    buildContainer()
+    e.target.value = ''
+  }
+}
+// // retrive from Local Storage
+// function getFromLocalStorage (key) {
+//   return JSON.parse(localStorage.getItem(key))
+// }
+// // save to Local Storage
+// function saveToLocalStorage (key, value) {
+//   localStorage.setItem(key, JSON.stringify(value))
+// }
+function countDone () {
+  const result = fetch('http://localhost:3000/todos/countDone', { method: 'GET' })
+  if (result > 0) return 1
+  else return 0
+  // const arr = getFromLocalStorage('todoItems')
+  // if (arr.filter(a => a.doneStatus).length)
+  //   return 1
+  // } else return 0
+}
+// buildContainer called from addTaskAction as callback for event listener on add button
+function buildContainer () {
+  // condition for what to pass as id to build container
+  // and also to increment local storage counter
+  // const uniqueId = getFromLocalStorage('counter') // no unique id needed
+  const typeTodo = document.querySelector('#typeTodo')
+  const id = pushTodoToDatabase(typeTodo)
+  buildElements(typeTodo.value, id)
+
+  // if (uniqueId) {
+  //   buildElements(typeTodo.value, uniqueId)
+  //   saveToLocalStorage('counter', uniqueId + 1)
+  // } else {
+  //   buildElements(typeTodo.value, 0)
+  //   saveToLocalStorage('counter', 1)
+  // }
+}
+// buildElements called inside buildContainer
+function buildElements (todoContent, id, doneStatus, selectedPriority, savedNotes, savedDate) {
+  const todo = makeTodoComponent()
+  todo.dataset.id = id
+  const hiddenComponent = makeHiddenTodoComponent(selectedPriority, savedNotes, savedDate, todo)
+  makeVisibleTodoComponent(todoContent, doneStatus, todo, hiddenComponent)
+}
+function makeTodoComponent () {
+  const listContainer = document.body.querySelector('ul')
   const element = document.createElement('li')
   listContainer.appendChild(element)
   return element
 }
+function makeHiddenTodoComponent (selectedPriority, savedNotes, savedDate, todo) {
+  // creating hidden part of the todo
+  const hiddenComponent = document.createElement('div')
+  hiddenComponent.classList.add('hidden')
+  hiddenComponent.style.display = 'none'
+  todo.appendChild(hiddenComponent)
 
-function createTodoPriorityElm (todoPriorities, updateTodoItemPriority, selected) {
-  const TodoPriorityElm = document.createElement('select')
-  TodoPriorityElm.classList.add('priority')
+  // make and append leftHidden and rightHidden panes of hidden
+  const leftHidden = document.createElement('div')
+  leftHidden.classList.add('leftHidden')
+  hiddenComponent.appendChild(leftHidden)
 
-  todoPriorities.map((priority) => {
-    const elm = document.createElement('option')
-    elm.value = priority
-    elm.textContent = priority
+  const rightHidden = document.createElement('div')
+  rightHidden.classList.add('rightHidden')
+  hiddenComponent.appendChild(rightHidden)
 
-    return elm
-  }).forEach((elm) => {
-    TodoPriorityElm.appendChild(elm)
-  })
+  // make and append notes to leftHidden
+  const notes = makeTodoNotesElm(savedNotes)
+  leftHidden.appendChild(notes)
 
-  TodoPriorityElm.addEventListener('change', updateTodoItemPriority)
+  function makeTodoNotesElm (savedNotes) {
+    const notes = document.createElement('textarea')
+    if (savedNotes) {
+      notes.value = savedNotes
+    }
+    notes.classList.add('notes')
+    // addeventlistener to notes
+    notes.addEventListener('input', (event) => {
+      const str = JSON.stringify({ notes: event.target.value })
+      fetch(`http://localhost:3000/todos/${todo.dataset.id}`, { method: 'PUT', body: str, headers: { 'content-type': 'application/json' } })
 
-  if (selected) {
-    TodoPriorityElm.selectedIndex = selected
+      // const updatesNotes = getFromLocalStorage('todoItems').map(a => { // UPDATE
+      //   if (a.id === todo.dataset.id) {
+      //     a.notes = event.target.value
+      //   }
+      //   return a
+      // })
+      // saveToLocalStorage('todoItems', updatesNotes)
+    })
+    notes.spellCheck = false
+    return notes
   }
 
-  return TodoPriorityElm
-}
+  //  make and append date to rightHidden
+  const date = makeTodoDateElm(savedDate, todo)
+  rightHidden.appendChild(date)
 
-function createTodoNotesElm (notesPassed, onNotesChange) {
-  const notesElm = document.createElement('textarea')
-  if (notesPassed) {
-    notesElm.value = notesPassed
+  // priority event listener
+  async function priorityElmEventListener (event) {
+    if (!isNaN(event.target.selectedIndex)) {
+      console.log(event.target.selectedIndex)
+      const str = JSON.stringify({ selectedPriority: event.target.selectedIndex })
+      await fetch(`http://localhost:3000/todos/${todo.dataset.id}`, { method: 'PUT', body: str, headers: { 'content-type': 'application/json' } })
+    }
   }
-  notesElm.classList.add('notes')
-  // addeventlistener to notes
-  notesElm.addEventListener('input', onNotesChange)
-  notesElm.spellCheck = false
-  return notesElm
-}
 
-function createTodoDateElm (datePassed, onChange) {
-  const date = document.createElement('input')
-  date.setAttribute('type', 'date')
-  if (datePassed) {
-    date.value = datePassed
+  // make and append priority to rightHidden
+  const TodoPriorityElm = makeTodoPriorityElm(['low', 'medium', 'high'], priorityElmEventListener, selectedPriority)
+  rightHidden.appendChild(TodoPriorityElm)
+
+  // delete event listener
+  async function deleteElmEventListener () {
+    await fetch(`http://localhost:3000/todos/${todo.dataset.id}`, { method: 'DELETE' })
+    // const filtered = getFromLocalStorage('todoItems').filter(a => a.id !== todo.dataset.id) // DELETE FROM todoitems WHERE id = todo.Dataset.id;
+    // saveToLocalStorage('todoItems', filtered)
+    todo.remove()
   }
-  date.classList.add('date')
-  // addeventlistener to date
-  date.addEventListener('change', onChange)
+  const deleteButton = makeTodoItemDeleteElm(deleteElmEventListener)
+  rightHidden.appendChild(deleteButton) // delete button appended
 
-  return date
+  return hiddenComponent
 }
-
-function createTodoItemDeleteElm (onClick) {
+function makeTodoItemDeleteElm (onClick) {
   const deleteButton = document.createElement('input')
   deleteButton.type = 'button'
   deleteButton.value = 'delete'
@@ -64,281 +200,149 @@ function createTodoItemDeleteElm (onClick) {
 
   return deleteButton
 }
-
-function createHiddenTodoComponent (selected, notesPassed, datePassed, listItem) {
-  // creating invisible part of the listItem
-  const invisible = document.createElement('div')
-  invisible.classList.add('invisible')
-  invisible.style.display = 'none'
-  listItem.appendChild(invisible)
-
-  // create and append left and right panes of invisible
-  const left = document.createElement('div')
-  left.classList.add('left')
-  invisible.appendChild(left)
-
-  const right = document.createElement('div')
-  right.classList.add('right')
-  invisible.appendChild(right)
-
-  // create and append notes to left
-  const notes = createTodoNotesElm(notesPassed, (e) => {
-    const filtered4 = getFromLocalStorage('todoItems').map(a => { // UPDATE
-      if (a.id === listItem.dataset.id) {
-        a.notes = e.target.value
-      }
-      return a
-    })
-    saveToLocalStorage('todoItems', filtered4)
-  })
-  left.appendChild(notes)
-
-  // create and append date, select, and delete button to right
-  const date = createTodoDateElm(datePassed, (e) => {
-    const filtered5 = getFromLocalStorage('todoItems').map(a => { // UPDATE
-      if (a.id === listItem.dataset.id) {
-        a.date = e.target.value
-      }
-      return a
-    })
-    saveToLocalStorage('todoItems', filtered5)
-  })
-  right.appendChild(date)
-
-  function updateTodoItemPriority (event) {
-    if (!isNaN(event.target.selectedIndex)) {
-      const filtered3 = getFromLocalStorage('todoItems').map(a => { // UPDATE todoitems SET priority = selectedIndex WHERE id.....
-        if (a.id === listItem.dataset.id) {
-          a.selected = event.target.selectedIndex
-        }
-        return a
-      })
-      saveToLocalStorage('todoItems', filtered3)
-    }
+function makeTodoDateElm (savedDate, todo) {
+  const date = document.createElement('input')
+  date.setAttribute('type', 'date')
+  if (savedDate) {
+    date.value = savedDate
   }
-  const TodoPriorityElm = createTodoPriorityElm(['low', 'medium', 'high'], updateTodoItemPriority, selected)
-  right.appendChild(TodoPriorityElm)
-
-  const deleteButton = createTodoItemDeleteElm(() => {
-    const filtered = getFromLocalStorage('todoItems').filter(a => a.id !== listItem.dataset.id) // DELETE FROM todoitems WHERE id = listITEM.Dataset.id;
-    saveToLocalStorage('todoItems', filtered)
-    listItem.remove()
+  date.classList.add('date')
+  // addeventlistener to date
+  date.addEventListener('change', async (event) => {
+    const str = JSON.stringify({ date: event.target.value })
+    await fetch(`http://localhost:3000/todos/${todo.dataset.id}`, { method: 'PUT', body: str, headers: { 'content-type': 'application/json' } })
   })
-  right.appendChild(deleteButton) // delete button appended
 
-  return invisible
+  return date
 }
 
-function createVisibleTodoComponent (data1, done, listItem, invisible) {
-  const visible = document.createElement('div')
-  listItem.insertBefore(visible, invisible)
-  visible.classList.add('visible')
+function makeTodoPriorityElm (todoPriorities, priorityElmEventListener, selectedPriority) {
+  const TodoPriorityElm = document.createElement('select')
+  TodoPriorityElm.classList.add('priority')
 
-  // creating and appending child elements to visible
+  todoPriorities.map((priority) => {
+    const option = document.createElement('option')
+    option.value = priority
+    option.textContent = priority
 
-  // creating p element and textbox inside
+    return option
+  }).forEach((option) => {
+    TodoPriorityElm.appendChild(option)
+  })
+
+  TodoPriorityElm.addEventListener('change', priorityElmEventListener)
+  if (selectedPriority) {
+    TodoPriorityElm.selectedIndex = selectedPriority
+  }
+
+  return TodoPriorityElm
+}
+function makeVisibleTodoComponent (todoContent, doneStatus, todo, hiddenComponent) {
+  // make visible component
+  const visibleComponent = document.createElement('div')
+  todo.insertBefore(visibleComponent, hiddenComponent)
+  visibleComponent.classList.add('visible')
+
+  // creating p element and textbox
   const p = document.createElement('p')
-  const savedTextarea = p.appendChild(document.createElement('input'))
+  const todoContentBar = p.appendChild(document.createElement('input'))
 
-  savedTextarea.value = data1
-  savedTextarea.className = 'savedTextarea'
-  savedTextarea.spellcheck = false
+  todoContentBar.value = todoContent
+  todoContentBar.className = 'todoContentBar'
+  todoContentBar.spellcheck = false
   p.classList.add('savedTask')
 
-  // checkbox created
+  // checkbox made
+  const checkbox = makeCheckboxElm(doneStatus, todoContentBar, todo)
+
+  // collapsible button made
+  makeCollapsibleButton(visibleComponent, checkbox, p)
+}
+function makeCheckboxElm (doneStatus, todoContentBar, todo) {
   const checkbox = document.createElement('input')
   // set checkbox properties
   checkbox.type = 'checkbox'
   checkbox.classList.add('strike')
-  if (done) {
-    checkbox.checked = done
-    savedTextarea.classList.add('taskCompletion')
+  if (doneStatus) {
+    checkbox.checked = doneStatus
+    todoContentBar.classList.add('taskCompletion')
   }
-
-  // collapsible button
-
-  const collapse = document.createElement('input')
-  collapse.type = 'button'
-  collapse.classList.add('collapse')
-  collapse.value = 'v'
-
-  visible.appendChild(p)
-  visible.appendChild(checkbox)
-  visible.appendChild(collapse)
-
   // checkbox event listener
-  checkbox.addEventListener('change', () => {
+  checkbox.addEventListener('change', async (event) => {
     if (checkbox.checked === true) {
-      savedTextarea.classList.add('taskCompletion')
+      todoContentBar.classList.add('taskCompletion')
     } else {
-      savedTextarea.classList.remove('taskCompletion')
+      todoContentBar.classList.remove('taskCompletion')
     }
-
-    const filtered2 = getFromLocalStorage('todoItems').map(a => { // updating checked column of a row // UPDATE todoitems SET done = x WHERE id = listItem.dataset.id;
-      if (a.id === listItem.dataset.id) {
-        a.done = checkbox.checked
-      }
-      return a
-    })
-    saveToLocalStorage('todoItems', filtered2)
+    const obj = { doneStatus: event.target.checked }
+    const str = JSON.stringify(obj)
+    console.log(str)
+    await (await fetch(`http://localhost:3000/todos/${todo.dataset.id}`, { method: 'PUT', body: str, headers: { 'content-type': 'application/json' } }))
     toggleDoneTodoFooter()
   })
+  return checkbox
+}
+function makeCollapsibleButton (visibleComponent, checkbox, p) {
+  const expandTodoButton = document.createElement('input')
+  expandTodoButton.type = 'button'
+  expandTodoButton.classList.add('expandTodoButton')
+  expandTodoButton.value = 'v'
 
-  // collapse button event listener
-  collapse.addEventListener('click', (e) => {
-    const parent = collapse.parentElement.parentElement
-    const toCollapse = parent.querySelector('.invisible')
-    if (toCollapse.style.display === 'flex') {
-      toCollapse.style.display = 'none'
-      collapse.value = 'v'
+  visibleComponent.appendChild(p)
+  visibleComponent.appendChild(checkbox)
+  visibleComponent.appendChild(expandTodoButton)
+
+  // expandTodoButton button event listener
+  expandTodoButton.addEventListener('click', (e) => {
+    const parent = expandTodoButton.parentElement.parentElement
+    const hiddenComponent = parent.querySelector('.hidden')
+    if (hiddenComponent.style.display === 'flex') {
+      hiddenComponent.style.display = 'none'
+      expandTodoButton.value = 'v'
     } else {
-      const openDropDown = document.getElementsByClassName('invisible')
+      const openDropDown = document.getElementsByClassName('hidden')
       for (let i = 0; i < openDropDown.length; i++) {
         if (openDropDown[i].style.display === 'flex') {
           openDropDown[i].style.display = 'none'
         }
       }
-      toCollapse.style.display = 'flex'
-      collapse.value = '^'
+      hiddenComponent.style.display = 'flex'
+      expandTodoButton.value = '^'
     }
   })
 }
-// buildElement called inside buildContainer
-function buildElement (data1, id, done, selected, notesPassed, datePassed) {
-  const listItem = createTodoComponent()
-  listItem.dataset.id = id
-  const invisible = createHiddenTodoComponent(selected, notesPassed, datePassed, listItem)
-  createVisibleTodoComponent(data1, done, listItem, invisible)
-}
-
-// buildContainer called from buttonClick as callback for event listener on add button
-function buildContainer () {
-  // condition for what to pass as id to build container
-  // and also to increment local storage counter
-  const uniqueId = getFromLocalStorage('counter') // no unique id needed
-  if (uniqueId) {
-    buildElement(task.value, uniqueId)
-    saveToLocalStorage('counter', uniqueId + 1)
-  } else {
-    buildElement(task.value, 0)
-    saveToLocalStorage('counter', 1)
-  }
-  const listItem2 = listContainer.lastChild
-  pushTodoToLocalStorage(listItem2)
-}
-
 // push todo to local storage
-function pushTodoToLocalStorage (todo) {
-  const arr = getFromLocalStorage('todoItems') // SELECT * FROM todoitems
+async function pushTodoToDatabase (typeTodo) {
   const obj = {
-    id: todo.dataset.id,
-    content: task.value,
-    done: false,
-    selected: null,
+    todoContent: typeTodo.value,
+    donestatus: false,
+    selectedPriority: null,
     notes: null,
     date: null
   }
-  if (!arr) {
-    saveToLocalStorage('todoItems', []) // CREATE TABLE IF NOT EXISTS todoitems(id SERIAL PRIMARY KEY, content text, done boolean, selected int, notes text, date date);
-  }
-  arr.push(obj)
-  saveToLocalStorage('todoItems', arr)
+  const str = JSON.stringify(obj)
+  const id = await fetch('http://localhost:3000/todos', {
+    method: 'POST',
+    body: str,
+    headers: {
+      'content-type': 'application/json'
+    }
+  })
+  console.log(id, 'the fucking result')
+  return id
+  // const arr = getFromLocalStorage('todoItems') // SELECT * FROM todoitems
+  // const typeTodo = document.querySelector('#typeTodo')
+  // const obj = {
+  //   id: todo.dataset.id,
+  //   content: typeTodo.value,
+  //   doneStatus: false,
+  //   selectedPriority: null,
+  //   notes: null,
+  //   date: null
+  // }
+  // if (!arr) {
+  //   saveToLocalStorage('todoItems', []) // make TABLE IF NOT EXISTS todoitems(id SERIAL PRIMARY KEY, content text, doneStatus boolean, selectedPriority int, notes text, date date);
+  // }
+  // arr.push(obj)
+  // saveToLocalStorage('todoItems', arr)
 }
-
-// save to Local Storage
-function saveToLocalStorage (localStorageKey, value) {
-  localStorage.setItem(localStorageKey, JSON.stringify(value))
-}
-
-// retrive from Local Storage
-function getFromLocalStorage (localStorageKey) {
-  return JSON.parse(localStorage.getItem(localStorageKey))
-}
-
-// callback function for addTask bar, calls buildContainer
-function buttonClick (e) {
-  if (e.target.value && e.keyCode === 13) {
-    buildContainer()
-    e.target.value = ''
-  }
-}
-
-// on first run, rendering list elements stored in local storage
-function renderTodo () {
-  makeFooter()
-  toggleDoneTodoFooter()
-  addTask.addEventListener('keypress', buttonClick)
-  if (!getFromLocalStorage('todoItems')) {
-    const arrTemp = []
-    saveToLocalStorage('todoItems', arrTemp) // CREATE TABLE
-  } else {
-    const getTodoItems = getFromLocalStorage('todoItems')
-    getTodoItems.forEach(a => {
-      buildElement(a.content, a.id, a.done, a.selected, a.notes, a.date)
-    })
-  }
-}
-
-function countDone () {
-  const arr = getFromLocalStorage('todoItems') // SELECT COUNT (*)  FROM todoitems WHERE done = 1;
-  if (arr.filter(a => a.done).length) {
-    return 1
-  } else return 0
-}
-
-function toggleDoneTodoFooter () {
-  const getButton = document.querySelector('.clearDone')
-  if (countDone()) getButton.style.visibility = 'visible'
-  else getButton.style.visibility = 'hidden'
-}
-
-function createClearAll (footer) {
-  const clearAll = document.createElement('input')
-  clearAll.type = 'button'
-  clearAll.value = 'Clear All'
-  clearAll.addEventListener('click', clearAllEventListener)
-  footer.appendChild(clearAll)
-  clearAll.classList.add('clearAll')
-}
-
-function clearAllEventListener () {
-  saveToLocalStorage('todoItems', []) // DELETE FROM todoitems;
-  while (document.querySelector('li')) {
-    document.querySelector('li').remove()
-  }
-}
-function createClearDone (footer) {
-  const clearDone = document.createElement('input')
-  clearDone.type = 'button'
-  clearDone.value = 'Clear Done'
-  clearDone.addEventListener('click', clearDoneEventListener)
-  footer.appendChild(clearDone)
-  clearDone.classList.add('clearDone')
-}
-
-function clearDoneEventListener () {
-  const arr1 = getFromLocalStorage('todoItems').filter(a => !a.done) // DELETE FROM todoitems WHERE done = 1
-  saveToLocalStorage('todoItems', arr1)
-  while (document.querySelector('.taskCompletion')) {
-    document.querySelector('.taskCompletion').parentElement.parentElement.remove()
-  }
-  toggleDoneTodoFooter()
-}
-
-function makeFooter () {
-  const footer = document.createElement('footer')
-  const div = document.createElement('div')
-  footer.appendChild(div)
-  div.classList.add('footerDiv')
-  footer.classList.add('.footer')
-  document.body.appendChild(footer)
-  createClearDone(div)
-  createClearAll(div)
-}
-function main () {
-  renderTodo()
-}
-
-main()
-
-// fix checkbox and delete error
