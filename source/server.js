@@ -11,7 +11,7 @@ app.use(express.static('public'))
 
 app.get('/todos', async (req, res) => {
   try {
-    const allTodos = await database.query('SELECT * FROM todoitems')
+    const allTodos = await database.query('SELECT * FROM todoitems ORDER BY id ASC;')
     res.json(allTodos.rows)
   } catch (err) {
     console.error(err.message)
@@ -22,7 +22,7 @@ app.get('/todos/countDone', async (req, res) => {
   console.log('hi2')
   try {
     const count = await database.query('SELECT COUNT (*)  FROM todoitems WHERE doneStatus = true;')
-    res.json(count)
+    res.json({ numberOfDoneTasks: parseInt(count.rows[0].count, 10) })
   } catch (err) {
     console.error(err.message)
   }
@@ -66,7 +66,8 @@ app.put('/todos/:id', async (req, res) => {
   const { id } = req.params
   const parameter = Object.keys(req.body)[0]
   console.log(req.body)
-  await database.query(`UPDATE todoitems SET ${parameter} = $1 WHERE id = $2`, [req.body[parameter], id])
+  await database.query(`UPDATE todoitems SET ${parameter} = $1 WHERE id = $2;`, [req.body[parameter], id])
+  console.log(await database.query('SELECT * FROM TODOITEMS;'))
   res.json('TODO was updated')
 })
 

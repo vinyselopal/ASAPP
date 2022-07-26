@@ -3,8 +3,7 @@ renderTodo()
 // on first run, rendering list elements stored in local storage
 async function renderTodo () {
   makeFooter()
-  toggleDoneTodoFooter()
-  console.log('hi')
+  await toggleDoneTodoFooter()
   const addTodoBar = document.querySelector('#addTodoBar')
   addTodoBar.addEventListener('keypress', addTaskAction)
   // if (!getFromLocalStorage('todoItems')) {
@@ -12,6 +11,7 @@ async function renderTodo () {
   // } else {
   const getTodoItems = await (await fetch('http://localhost:3000/todos', { method: 'GET' })).json()
   // getFromLocalStorage('todoItems')
+  console.log(getTodoItems)
   getTodoItems.forEach(a => {
     buildElements(a.todocontent, a.id, a.donestatus, a.selectedpriority, a.notes, a.date)
   })
@@ -30,7 +30,7 @@ function makeFooter () {
 function makeClearDoneButton (footer) {
   const clearDone = document.createElement('input')
   clearDone.type = 'button'
-  clearDone.value = 'Clear doneStatus'
+  clearDone.value = 'Clear Done'
   clearDone.addEventListener('click', clearDoneEventListener)
   footer.appendChild(clearDone)
   clearDone.classList.add('clearDone')
@@ -60,10 +60,17 @@ function clearAllEventListener () {
     document.querySelector('li').remove()
   }
 }
-function toggleDoneTodoFooter () {
+async function toggleDoneTodoFooter () {
   const clearDone = document.querySelector('.clearDone')
-  if (countDone()) clearDone.style.visibility = 'visible'
-  else clearDone.style.visibility = 'hidden'
+  const condition = await countDone()
+
+  console.log(condition)
+  if (condition) {
+    clearDone.style.visibility = 'visible'
+  } else {
+    console.log('hi')
+    clearDone.style.visibility = 'hidden'
+  }
 }
 // callback function for addTodoBar bar, calls buildContainer
 function addTaskAction (e) {
@@ -80,9 +87,10 @@ function addTaskAction (e) {
 // function saveToLocalStorage (key, value) {
 //   localStorage.setItem(key, JSON.stringify(value))
 // }
-function countDone () {
-  const result = fetch('http://localhost:3000/todos/countDone', { method: 'GET' })
-  if (result > 0) return 1
+async function countDone () {
+  const result = (await (await fetch('http://localhost:3000/todos/countDone', { method: 'GET' })).json())
+  console.log('result', result.numberOfDoneTasks)
+  if (result.numberOfDoneTasks > 0) return 1
   else return 0
   // const arr = getFromLocalStorage('todoItems')
   // if (arr.filter(a => a.doneStatus).length)
@@ -210,6 +218,7 @@ function makeTodoDateElm (savedDate, todo) {
   // addeventlistener to date
   date.addEventListener('change', async (event) => {
     const str = JSON.stringify({ date: event.target.value })
+    console.log(event.target.value)
     await fetch(`http://localhost:3000/todos/${todo.dataset.id}`, { method: 'PUT', body: str, headers: { 'content-type': 'application/json' } })
   })
 
@@ -266,7 +275,7 @@ function makeCheckboxElm (doneStatus, todoContentBar, todo) {
   if (doneStatus) {
     checkbox.checked = doneStatus
     todoContentBar.classList.add('taskCompletion')
-  }
+  } else checkbox.checked = false
   // checkbox event listener
   checkbox.addEventListener('change', async (event) => {
     if (checkbox.checked === true) {
@@ -315,7 +324,7 @@ function makeCollapsibleButton (visibleComponent, checkbox, p) {
 async function pushTodoToDatabase (typeTodo) {
   const obj = {
     todoContent: typeTodo.value,
-    donestatus: false,
+    doneStatus: false,
     selectedPriority: null,
     notes: null,
     date: null
