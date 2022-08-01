@@ -24,8 +24,9 @@ const updateTodoItem = (parameter, parameterValue, id) => {
 const countDoneTodoItems = (id) => {
   return pool.query('SELECT COUNT (*)  FROM todoitems WHERE donestatus = true;')
 }
-const getAllTodoItems = (id) => {
-  return pool.query('SELECT * FROM todoitems ORDER BY id ASC;')
+const getAllTodoItems = async (id) => {
+  const result = await pool.query('SELECT * FROM todoitems ORDER BY id ASC;')
+  return result.rows
 }
 const insertTodoItem = (todoContent, doneStatus, selectedPriority, notes, done) => {
   return pool.query(

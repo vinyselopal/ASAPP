@@ -11,7 +11,7 @@ app.use(express.json())
 app.get('/todos', async (req, res) => {
   try {
     const allTodos = await getAllTodoItems()
-    res.json(allTodos.rows)
+    res.json(allTodos)
   } catch (err) {
     console.error(err)
     res.sendStatus(500)
