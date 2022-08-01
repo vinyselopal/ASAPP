@@ -3,8 +3,6 @@ const app = express()
 const database = require('./db.js')
 app.use(express.json()) // doubt
 
-app.use(express.static('public'))
-
 // ROUTES//
 
 // get all todos
@@ -73,23 +71,26 @@ app.put('/todos/:id', async (req, res) => {
 
 // delete a todo
 
-app.delete('/todos/:id', async (req, res) => {
-  try {
-    const { id } = req.params
-    await database.query('DELETE FROM todoitems WHERE id = $1', [id])
-    res.json('TODO was deleted')
-  } catch (err) {
-    console.error(err.message)
-  }
-})
 app.delete('/todos/clearDone', async (req, res) => {
   try {
-    await database.query('DELETE FROM todoitems WHERE doneStatus = 1')
+    await database.query('DELETE FROM todoitems WHERE donestatus = true;')
     res.json('done todos deleted')
   } catch (err) {
     console.error(err.message)
   }
 })
+
+app.delete('/todos/:id', async (req, res) => {
+  try {
+    const { id } = req.params
+    await database.query('DELETE FROM todoitems WHERE id = $1;', [id])
+    res.json('TODO was deleted')
+  } catch (err) {
+    console.error(err)
+    res.send()
+  }
+})
+
 app.delete('/todos', async (req, res) => {
   try {
     await database.query('DELETE FROM todoitems;')
@@ -98,5 +99,6 @@ app.delete('/todos', async (req, res) => {
     console.err(err.message)
   }
 })
+app.use(express.static('public')) //
 
 app.listen(3000)
