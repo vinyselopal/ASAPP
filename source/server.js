@@ -1,7 +1,7 @@
 const express = require('express')
 const app = express()
 const database = require('./db.js')
-app.use(express.json()) // doubt
+app.use(express.json())
 
 // ROUTES//
 
@@ -13,6 +13,7 @@ app.get('/todos', async (req, res) => {
     res.json(allTodos.rows)
   } catch (err) {
     console.error(err.message)
+    res.status(500).send('err')
   }
 })
 
@@ -44,7 +45,6 @@ app.get('/todos/:id', async (req, res) => {
 
 app.post('/todos', async (req, res) => {
   try {
-    // await
     const { todoContent, doneStatus, selectedPriority, notes, done } = req.body
     console.log(todoContent)
     const result = await database.query(
