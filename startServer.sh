@@ -1,1 +1,0 @@
-kill -9 (lsof -i tcp:3000 | tail -n 1 | cut -d " " -f 5)
