@@ -101,6 +101,8 @@ app.delete('/todos', async (req, res) => {
     res.sendStatus(500)
   }
 })
+
+// mounting middleware static() to serve static file at path 'public'
 app.use(express.static('public'))
 
 app.listen(3000)
