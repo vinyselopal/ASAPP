@@ -1,6 +1,8 @@
 const express = require('express')
 const app = express()
 const database = require('./db.js')
+
+// middleware converting request to json
 app.use(express.json())
 
 // ROUTES //
