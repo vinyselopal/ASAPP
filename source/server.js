@@ -18,7 +18,6 @@ app.get('/todos', async (req, res) => {
 })
 
 app.get('/todos/countDone', async (req, res) => {
-  console.log('hi2')
   try {
     const count = await database.query('SELECT COUNT (*)  FROM todoitems WHERE doneStatus = true;')
     res.json({ numberOfDoneTasks: parseInt(count.rows[0].count, 10) })
@@ -30,7 +29,6 @@ app.get('/todos/countDone', async (req, res) => {
 // get a todo
 
 app.get('/todos/:id', async (req, res) => {
-  console.log(req.params)
   const { id } = req.params
   // add an error handler when id isnt present in the table
   try {
@@ -46,11 +44,9 @@ app.get('/todos/:id', async (req, res) => {
 app.post('/todos', async (req, res) => {
   try {
     const { todoContent, doneStatus, selectedPriority, notes, done } = req.body
-    console.log(todoContent)
     const result = await database.query(
       'INSERT INTO todoitems (todoContent, doneStatus, selectedPriority, notes, date) VALUES ($1, $2, $3, $4,$5) RETURNING *', [todoContent, doneStatus, selectedPriority, notes, done]
     )
-    console.log(result.rows[0].id)
     res.json(result.rows[0].id)
   } catch (err) {
     console.log(err.message)
@@ -58,14 +54,11 @@ app.post('/todos', async (req, res) => {
 })
 
 // update a todo
-// date field datatype doubt
 
 app.put('/todos/:id', async (req, res) => {
   const { id } = req.params
   const parameter = Object.keys(req.body)[0]
-  console.log(req.body)
   await database.query(`UPDATE todoitems SET ${parameter} = $1 WHERE id = $2;`, [req.body[parameter], id])
-  console.log(await database.query('SELECT * FROM TODOITEMS;'))
   res.json('TODO was updated')
 })
 
@@ -76,7 +69,7 @@ app.delete('/todos/clearDone', async (req, res) => {
     await database.query('DELETE FROM todoitems WHERE donestatus = true;')
     res.json('done todos deleted')
   } catch (err) {
-    console.error(err.message)
+    console.error(err)
   }
 })
 
@@ -99,6 +92,6 @@ app.delete('/todos', async (req, res) => {
     console.err(err.message)
   }
 })
-app.use(express.static('public')) //
+app.use(express.static('public'))
 
 app.listen(3000)

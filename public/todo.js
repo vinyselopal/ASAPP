@@ -8,7 +8,6 @@ async function renderTodo () {
   addTodoBar.addEventListener('keypress', addTaskAction)
 
   const getTodoItems = await (await fetch('http://localhost:3000/todos', { method: 'GET' })).json()
-  console.log(getTodoItems)
   getTodoItems.forEach(a => {
     buildElements(a.todocontent, a.id, a.donestatus, a.selectedpriority, a.notes, a.date)
   })
@@ -58,11 +57,9 @@ async function toggleDoneTodoFooter () {
   const clearDone = document.querySelector('.clearDone')
   const condition = await countDone()
 
-  console.log(condition)
   if (condition) {
     clearDone.style.visibility = 'visible'
   } else {
-    console.log('hi')
     clearDone.style.visibility = 'hidden'
   }
 }
@@ -76,7 +73,6 @@ function addTaskAction (e) {
 
 async function countDone () {
   const result = (await (await fetch('http://localhost:3000/todos/countDone', { method: 'GET' })).json())
-  console.log('result', result.numberOfDoneTasks)
   if (result.numberOfDoneTasks > 0) return 1
   else return 0
 }
@@ -139,7 +135,6 @@ function makeHiddenTodoComponent (selectedPriority, savedNotes, savedDate, todo)
   // priority event listener
   async function priorityElmEventListener (event) {
     if (!isNaN(event.target.selectedIndex)) {
-      console.log(event.target.selectedIndex)
       const str = JSON.stringify({ selectedPriority: event.target.selectedIndex })
       await fetch(`http://localhost:3000/todos/${todo.dataset.id}`, { method: 'PUT', body: str, headers: { 'content-type': 'application/json' } })
     }
@@ -179,7 +174,6 @@ function makeTodoDateElm (savedDate, todo) {
   // addeventlistener to date
   date.addEventListener('change', async (event) => {
     const str = JSON.stringify({ date: event.target.value })
-    console.log(event.target.value)
     await fetch(`http://localhost:3000/todos/${todo.dataset.id}`, { method: 'PUT', body: str, headers: { 'content-type': 'application/json' } })
   })
 
@@ -246,7 +240,6 @@ function makeCheckboxElm (doneStatus, todoContentBar, todo) {
     }
     const obj = { doneStatus: event.target.checked }
     const str = JSON.stringify(obj)
-    console.log(str)
     await (await fetch(`http://localhost:3000/todos/${todo.dataset.id}`, { method: 'PUT', body: str, headers: { 'content-type': 'application/json' } }))
     toggleDoneTodoFooter()
   })
@@ -297,6 +290,5 @@ async function pushTodoToDatabase (typeTodo) {
       'content-type': 'application/json'
     }
   })
-  console.log(id, 'the fucking result')
   return id
 }
