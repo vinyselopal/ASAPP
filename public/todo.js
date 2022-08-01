@@ -1,5 +1,5 @@
+const SERVER_URL = 'http://localhost:3000/todos'
 renderTodo()
-
 // on first run, rendering list elements stored in local storage
 async function renderTodo () {
   makeFooter()
@@ -7,7 +7,7 @@ async function renderTodo () {
   const addTodoBar = document.querySelector('#addTodoBar')
   addTodoBar.addEventListener('keypress', addTaskAction)
 
-  const getTodoItems = await (await fetch('http://localhost:3000/todos', { method: 'GET' })).json()
+  const getTodoItems = await (await fetch(`${SERVER_URL}`, { method: 'GET' })).json()
   getTodoItems.forEach(a => {
     buildElements(a.todocontent, a.id, a.donestatus, a.selectedpriority, a.notes, a.date)
   })
@@ -31,7 +31,7 @@ function makeClearDoneButton (footer) {
   clearDone.classList.add('clearDone')
 }
 function clearDoneEventListener () {
-  fetch('http://localhost:3000/todos/clearDone', { method: 'DELETE' })
+  fetch(`${SERVER_URL}/clearDone`, { method: 'DELETE' })
 
   while (document.querySelector('.taskCompletion')) {
     document.querySelector('.taskCompletion').parentElement.parentElement.remove()
@@ -47,7 +47,7 @@ function makeClearAllButton (footer) {
   clearAll.classList.add('clearAll')
 }
 function clearAllEventListener () {
-  fetch('http://localhost:3000/todos', { method: 'DELETE' })
+  fetch(`${SERVER_URL}`, { method: 'DELETE' })
 
   while (document.querySelector('li')) {
     document.querySelector('li').remove()
@@ -72,7 +72,7 @@ function addTaskAction (e) {
 }
 
 async function countDone () {
-  const result = (await (await fetch('http://localhost:3000/todos/countDone', { method: 'GET' })).json())
+  const result = (await (await fetch(`${SERVER_URL}/countDone`, { method: 'GET' })).json())
   if (result.numberOfDoneTasks > 0) return 1
   else return 0
 }
@@ -123,7 +123,7 @@ function makeHiddenTodoComponent (selectedPriority, savedNotes, savedDate, todo)
     // addeventlistener to notes
     notes.addEventListener('input', (event) => {
       const str = JSON.stringify({ notes: event.target.value })
-      fetch(`http://localhost:3000/todos/${todo.dataset.id}`, { method: 'PUT', body: str, headers: { 'content-type': 'application/json' } })
+      fetch(`${SERVER_URL}${todo.dataset.id}`, { method: 'PUT', body: str, headers: { 'content-type': 'application/json' } })
     })
     notes.spellCheck = false
     return notes
@@ -137,7 +137,7 @@ function makeHiddenTodoComponent (selectedPriority, savedNotes, savedDate, todo)
   async function priorityElmEventListener (event) {
     if (!isNaN(event.target.selectedIndex)) {
       const str = JSON.stringify({ selectedPriority: event.target.selectedIndex })
-      await fetch(`http://localhost:3000/todos/${todo.dataset.id}`, { method: 'PUT', body: str, headers: { 'content-type': 'application/json' } })
+      await fetch(`${SERVER_URL}${todo.dataset.id}`, { method: 'PUT', body: str, headers: { 'content-type': 'application/json' } })
     }
   }
 
@@ -147,7 +147,7 @@ function makeHiddenTodoComponent (selectedPriority, savedNotes, savedDate, todo)
 
   // delete event listener
   async function deleteElmEventListener () {
-    await fetch(`http://localhost:3000/todos/${todo.dataset.id}`, { method: 'DELETE' })
+    await fetch(`${SERVER_URL}${todo.dataset.id}`, { method: 'DELETE' })
 
     todo.remove()
   }
@@ -176,7 +176,7 @@ function makeTodoDateElm (savedDate, todo) {
   // addeventlistener to date
   date.addEventListener('change', async (event) => {
     const str = JSON.stringify({ date: event.target.value })
-    await fetch(`http://localhost:3000/todos/${todo.dataset.id}`, { method: 'PUT', body: str, headers: { 'content-type': 'application/json' } })
+    await fetch(`${SERVER_URL}${todo.dataset.id}`, { method: 'PUT', body: str, headers: { 'content-type': 'application/json' } })
   })
 
   return date
@@ -243,7 +243,7 @@ function makeCheckboxElm (doneStatus, todoContentBar, todo) {
     }
     const obj = { doneStatus: event.target.checked }
     const str = JSON.stringify(obj)
-    await (await fetch(`http://localhost:3000/todos/${todo.dataset.id}`, { method: 'PUT', body: str, headers: { 'content-type': 'application/json' } }))
+    await (await fetch(`${SERVER_URL}${todo.dataset.id}`, { method: 'PUT', body: str, headers: { 'content-type': 'application/json' } }))
     toggleDoneTodoFooter()
   })
   return checkbox
@@ -286,7 +286,7 @@ async function pushTodoToDatabase (typeTodo) {
     date: null
   }
   const str = JSON.stringify(obj)
-  const id = await fetch('http://localhost:3000/todos', {
+  const id = await fetch(`${SERVER_URL}`, {
     method: 'POST',
     body: str,
     headers: {
