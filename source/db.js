@@ -6,31 +6,32 @@ const pool = new Pool({
   database: 'todoapp',
   password: 'abcd'
 })
-const findTodoItem = (id) => {
-  return pool.query('SELECT * from todoitems WHERE id = $1', [id])
+const findTodoItem = async (id) => {
+  return await pool.query('SELECT * from todoitems WHERE id = $1', [id])
 }
-const deleteTodoItem = (id) => {
-  return pool.query('DELETE FROM todoitems WHERE id = $1;', [id])
+const deleteTodoItem = async (id) => {
+  return await pool.query('DELETE FROM todoitems WHERE id = $1;', [id])
 }
-const deleteAllTodoItems = (id) => {
-  return pool.query('DELETE FROM todoitems;')
+const deleteAllTodoItems = async (id) => {
+  return await pool.query('DELETE FROM todoitems;')
 }
-const deleteDoneTodoItems = (id) => {
-  return pool.query('DELETE FROM todoitems WHERE donestatus = true;')
+const deleteDoneTodoItems = async (id) => {
+  return await pool.query('DELETE FROM todoitems WHERE donestatus = true;')
 }
-const updateTodoItem = (parameter, parameterValue, id) => {
-  return pool.query(`UPDATE todoitems SET ${parameter} = $1 WHERE id = $2;`, [parameterValue, id])
+const updateTodoItem = async (parameter, parameterValue, id) => {
+  return await pool.query(`UPDATE todoitems SET ${parameter} = $1 WHERE id = $2;`, [parameterValue, id])
 }
-const countDoneTodoItems = (id) => {
-  return pool.query('SELECT COUNT (*)  FROM todoitems WHERE donestatus = true;')
+const countDoneTodoItems = async () => {
+  const result = await pool.query('SELECT COUNT (*)  FROM todoitems WHERE donestatus = true;')
+  return { numberOfDoneTasks: parseInt(result.rows[0].count, 10) }
 }
-const getAllTodoItems = async (id) => {
+const getAllTodoItems = async () => {
   const result = await pool.query('SELECT * FROM todoitems ORDER BY id ASC;')
   return result.rows
 }
-const insertTodoItem = (todoContent, doneStatus, selectedPriority, notes, done) => {
-  return pool.query(
-    'INSERT INTO todoitems (todoContent, doneStatus, selectedPriority, notes, date) VALUES ($1, $2, $3, $4,$5) RETURNING *', [todoContent, doneStatus, selectedPriority, notes, done]
-  )
+const insertTodoItem = async (todoContent, doneStatus, selectedPriority, notes, done) => {
+  const result = await pool.query(
+    'INSERT INTO todoitems (todoContent, doneStatus, selectedPriority, notes, date) VALUES ($1, $2, $3, $4,$5) RETURNING *', [todoContent, doneStatus, selectedPriority, notes, done])
+  return result.rows[0].id
 }
 module.exports = { findTodoItem, deleteTodoItem, deleteAllTodoItems, deleteDoneTodoItems, updateTodoItem, countDoneTodoItems, getAllTodoItems, insertTodoItem }

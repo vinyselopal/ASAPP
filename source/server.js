@@ -22,7 +22,7 @@ app.get('/todos', async (req, res) => {
 app.get('/todos/countDone', async (req, res) => {
   try {
     const count = await countDoneTodoItems()
-    res.json({ numberOfDoneTasks: parseInt(count.rows[0].count, 10) })
+    res.json(count)
   } catch (err) {
     console.error(err)
     res.sendStatus(500)
@@ -46,7 +46,7 @@ app.post('/todos', async (req, res) => {
   try {
     const { todoContent, doneStatus, selectedPriority, notes, done } = req.body
     const result = await insertTodoItem(todoContent, doneStatus, selectedPriority, notes, done)
-    res.json(result.rows[0].id)
+    res.json(result)
   } catch (err) {
     console.error(err)
     res.sendStatus(500)
