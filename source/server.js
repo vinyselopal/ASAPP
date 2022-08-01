@@ -3,7 +3,7 @@ const app = express()
 const database = require('./db.js')
 app.use(express.json())
 
-// ROUTES//
+// ROUTES //
 
 // get all todos
 
@@ -12,8 +12,8 @@ app.get('/todos', async (req, res) => {
     const allTodos = await database.query('SELECT * FROM todoitems ORDER BY id ASC;')
     res.json(allTodos.rows)
   } catch (err) {
-    console.error(err.message)
-    res.status(500).send('err')
+    console.error(err)
+    res.status(500).send()
   }
 })
 
@@ -22,7 +22,8 @@ app.get('/todos/countDone', async (req, res) => {
     const count = await database.query('SELECT COUNT (*)  FROM todoitems WHERE doneStatus = true;')
     res.json({ numberOfDoneTasks: parseInt(count.rows[0].count, 10) })
   } catch (err) {
-    console.error(err.message)
+    console.error(err)
+    res.status(500).send()
   }
 })
 
@@ -36,6 +37,7 @@ app.get('/todos/:id', async (req, res) => {
     res.json(todo)
   } catch (err) {
     console.error(err)
+    res.status(500).send()
   }
 })
 
@@ -49,17 +51,23 @@ app.post('/todos', async (req, res) => {
     )
     res.json(result.rows[0].id)
   } catch (err) {
-    console.log(err.message)
+    console.log(err)
+    res.status(500).send()
   }
 })
 
 // update a todo
 
 app.put('/todos/:id', async (req, res) => {
-  const { id } = req.params
-  const parameter = Object.keys(req.body)[0]
-  await database.query(`UPDATE todoitems SET ${parameter} = $1 WHERE id = $2;`, [req.body[parameter], id])
-  res.json('TODO was updated')
+  try {
+    const { id } = req.params
+    const parameter = Object.keys(req.body)[0]
+    await database.query(`UPDATE todoitems SET ${parameter} = $1 WHERE id = $2;`, [req.body[parameter], id])
+    res.json('TODO was updated')
+  } catch {
+    console.log(err)
+    res.status(500).send()
+  }
 })
 
 // delete a todo
@@ -70,6 +78,7 @@ app.delete('/todos/clearDone', async (req, res) => {
     res.json('done todos deleted')
   } catch (err) {
     console.error(err)
+    res.status(500).send()
   }
 })
 
@@ -80,7 +89,7 @@ app.delete('/todos/:id', async (req, res) => {
     res.json('TODO was deleted')
   } catch (err) {
     console.error(err)
-    res.send()
+    res.status(500).send()
   }
 })
 
@@ -89,7 +98,8 @@ app.delete('/todos', async (req, res) => {
     await database.query('DELETE FROM todoitems;')
     res.json('All todos were deleted')
   } catch (err) {
-    console.err(err.message)
+    console.err(err)
+    res.status(500).send()
   }
 })
 app.use(express.static('public'))
