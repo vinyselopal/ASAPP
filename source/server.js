@@ -16,6 +16,7 @@ app.get('/todos', async (req, res) => {
   }
 })
 
+// count number of done todos
 app.get('/todos/countDone', async (req, res) => {
   try {
     const count = await database.query('SELECT COUNT (*)  FROM todoitems WHERE doneStatus = true;')
@@ -76,6 +77,7 @@ app.delete('/todos/clearDone', async (req, res) => {
   }
 })
 
+// delete a todo
 app.delete('/todos/:id', async (req, res) => {
   try {
     const { id } = req.params
@@ -87,6 +89,7 @@ app.delete('/todos/:id', async (req, res) => {
   }
 })
 
+// delete all todos
 app.delete('/todos', async (req, res) => {
   try {
     await database.query('DELETE FROM todoitems;')
