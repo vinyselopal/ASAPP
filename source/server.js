@@ -13,7 +13,7 @@ app.get('/todos', async (req, res) => {
     res.json(allTodos.rows)
   } catch (err) {
     console.error(err)
-    res.status(500).send()
+    res.sendStatus(500)
   }
 })
 
@@ -23,7 +23,7 @@ app.get('/todos/countDone', async (req, res) => {
     res.json({ numberOfDoneTasks: parseInt(count.rows[0].count, 10) })
   } catch (err) {
     console.error(err)
-    res.status(500).send()
+    res.sendStatus(500)
   }
 })
 
@@ -37,7 +37,7 @@ app.get('/todos/:id', async (req, res) => {
     res.json(todo)
   } catch (err) {
     console.error(err)
-    res.status(500).send()
+    res.sendStatus(500)
   }
 })
 
@@ -52,7 +52,7 @@ app.post('/todos', async (req, res) => {
     res.json(result.rows[0].id)
   } catch (err) {
     console.log(err)
-    res.status(500).send()
+    res.sendStatus(500)
   }
 })
 
@@ -66,7 +66,7 @@ app.put('/todos/:id', async (req, res) => {
     res.json('TODO was updated')
   } catch {
     console.log(err)
-    res.status(500).send()
+    res.sendStatus(500)
   }
 })
 
@@ -78,7 +78,7 @@ app.delete('/todos/clearDone', async (req, res) => {
     res.json('done todos deleted')
   } catch (err) {
     console.error(err)
-    res.status(500).send()
+    res.sendStatus(500)
   }
 })
 
@@ -89,7 +89,7 @@ app.delete('/todos/:id', async (req, res) => {
     res.json('TODO was deleted')
   } catch (err) {
     console.error(err)
-    res.status(500).send()
+    res.sendStatus(500)
   }
 })
 
@@ -99,7 +99,7 @@ app.delete('/todos', async (req, res) => {
     res.json('All todos were deleted')
   } catch (err) {
     console.err(err)
-    res.status(500).send()
+    res.sendStatus(500)
   }
 })
 app.use(express.static('public'))
