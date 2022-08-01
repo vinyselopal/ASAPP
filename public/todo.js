@@ -119,6 +119,7 @@ function makeHiddenTodoComponent (selectedPriority, savedNotes, savedDate, todo)
       notes.value = savedNotes
     }
     notes.classList.add('notes')
+
     // addeventlistener to notes
     notes.addEventListener('input', (event) => {
       const str = JSON.stringify({ notes: event.target.value })
@@ -171,6 +172,7 @@ function makeTodoDateElm (savedDate, todo) {
     date.value = savedDate
   }
   date.classList.add('date')
+
   // addeventlistener to date
   date.addEventListener('change', async (event) => {
     const str = JSON.stringify({ date: event.target.value })
@@ -231,6 +233,7 @@ function makeCheckboxElm (doneStatus, todoContentBar, todo) {
     checkbox.checked = doneStatus
     todoContentBar.classList.add('taskCompletion')
   } else checkbox.checked = false
+
   // checkbox event listener
   checkbox.addEventListener('change', async (event) => {
     if (checkbox.checked === true) {

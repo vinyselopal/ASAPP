@@ -6,7 +6,6 @@ app.use(express.json())
 // ROUTES //
 
 // get all todos
-
 app.get('/todos', async (req, res) => {
   try {
     const allTodos = await database.query('SELECT * FROM todoitems ORDER BY id ASC;')
@@ -28,10 +27,8 @@ app.get('/todos/countDone', async (req, res) => {
 })
 
 // get a todo
-
 app.get('/todos/:id', async (req, res) => {
   const { id } = req.params
-  // add an error handler when id isnt present in the table
   try {
     const todo = await database.query('SELECT * from todoitems WHERE id = $1', [id])
     res.json(todo)
@@ -42,7 +39,6 @@ app.get('/todos/:id', async (req, res) => {
 })
 
 // create a todo
-
 app.post('/todos', async (req, res) => {
   try {
     const { todoContent, doneStatus, selectedPriority, notes, done } = req.body
@@ -57,7 +53,6 @@ app.post('/todos', async (req, res) => {
 })
 
 // update a todo
-
 app.put('/todos/:id', async (req, res) => {
   try {
     const { id } = req.params
@@ -71,7 +66,6 @@ app.put('/todos/:id', async (req, res) => {
 })
 
 // delete a todo
-
 app.delete('/todos/clearDone', async (req, res) => {
   try {
     await database.query('DELETE FROM todoitems WHERE donestatus = true;')
