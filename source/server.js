@@ -51,7 +51,7 @@ app.post('/todos', async (req, res) => {
     )
     res.json(result.rows[0].id)
   } catch (err) {
-    console.log(err)
+    console.error(err)
     res.sendStatus(500)
   }
 })
@@ -64,8 +64,8 @@ app.put('/todos/:id', async (req, res) => {
     const parameter = Object.keys(req.body)[0]
     await database.query(`UPDATE todoitems SET ${parameter} = $1 WHERE id = $2;`, [req.body[parameter], id])
     res.json('TODO was updated')
-  } catch {
-    console.log(err)
+  } catch (err) {
+    console.error(err)
     res.sendStatus(500)
   }
 })
