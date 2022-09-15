@@ -1,3 +1,4 @@
+import DB from './src/DB.js'
 const SERVER_URL = 'http://localhost:3000/todos'
 renderTodo()
 // on first run, rendering list elements stored in local storage
@@ -7,7 +8,7 @@ async function renderTodo () {
   const addTodoBar = document.querySelector('#addTodoBar')
   addTodoBar.addEventListener('keypress', addTaskAction)
 
-  const getTodoItems = await (await fetch(`${SERVER_URL}`, { method: 'GET' })).json()
+  const getTodoItems = await DB.getTodos()
   getTodoItems.forEach(a => {
     buildElements(a.todocontent, a.id, a.donestatus, a.selectedpriority, a.notes, a.date)
   })
@@ -72,7 +73,7 @@ function addTaskAction (e) {
 }
 
 async function countDone () {
-  const result = (await (await fetch(`${SERVER_URL}/countDone`, { method: 'GET' })).json())
+  const result = (await DB.countDone())
   if (result.numberOfDoneTasks > 0) return 1
   else return 0
 }
@@ -121,9 +122,9 @@ function makeHiddenTodoComponent (selectedPriority, savedNotes, savedDate, todo)
     notes.classList.add('notes')
 
     // addeventlistener to notes
-    notes.addEventListener('input', (event) => {
+    notes.addEventListener('input', async (event) => {
       const str = JSON.stringify({ notes: event.target.value })
-      fetch(`${SERVER_URL}${todo.dataset.id}`, { method: 'PUT', body: str, headers: { 'content-type': 'application/json' } })
+      await DB.updateTodo(todo.dataset.id, str)
     })
     notes.spellCheck = false
     return notes
@@ -137,7 +138,7 @@ function makeHiddenTodoComponent (selectedPriority, savedNotes, savedDate, todo)
   async function priorityElmEventListener (event) {
     if (!isNaN(event.target.selectedIndex)) {
       const str = JSON.stringify({ selectedPriority: event.target.selectedIndex })
-      await fetch(`${SERVER_URL}${todo.dataset.id}`, { method: 'PUT', body: str, headers: { 'content-type': 'application/json' } })
+      await DB.updateTodo(todo.dataset.id, str)
     }
   }
 
@@ -147,8 +148,7 @@ function makeHiddenTodoComponent (selectedPriority, savedNotes, savedDate, todo)
 
   // delete event listener
   async function deleteElmEventListener () {
-    await fetch(`${SERVER_URL}${todo.dataset.id}`, { method: 'DELETE' })
-
+    await DB.deleteTodo(todo.dataset.id)
     todo.remove()
   }
   const deleteButton = makeTodoItemDeleteElm(deleteElmEventListener)
@@ -176,7 +176,7 @@ function makeTodoDateElm (savedDate, todo) {
   // addeventlistener to date
   date.addEventListener('change', async (event) => {
     const str = JSON.stringify({ date: event.target.value })
-    await fetch(`${SERVER_URL}${todo.dataset.id}`, { method: 'PUT', body: str, headers: { 'content-type': 'application/json' } })
+    await DB.updateTodo(todo.dataset.id, str)
   })
 
   return date
@@ -243,7 +243,7 @@ function makeCheckboxElm (doneStatus, todoContentBar, todo) {
     }
     const obj = { doneStatus: event.target.checked }
     const str = JSON.stringify(obj)
-    await (await fetch(`${SERVER_URL}${todo.dataset.id}`, { method: 'PUT', body: str, headers: { 'content-type': 'application/json' } }))
+    await DB.updateTodo(todo.dataset.id, str)
     toggleDoneTodoFooter()
   })
   return checkbox
@@ -286,12 +286,6 @@ async function pushTodoToDatabase (typeTodo) {
     date: null
   }
   const str = JSON.stringify(obj)
-  const id = await fetch(`${SERVER_URL}`, {
-    method: 'POST',
-    body: str,
-    headers: {
-      'content-type': 'application/json'
-    }
-  })
+  const id = await DB.postTodo(str)
   return id
 }
